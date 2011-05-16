@@ -1,0 +1,17 @@
+name: ChestLock
+main: com.webkonsept.bukkit.chestlock.ChestLock
+version: 0.1
+website: http://minecraft.webkonsept.com/
+author: Fredrik Vold
+database: false
+description: >
+        Gives players the ability to lock chests
+commands:
+    clreload:
+        aliases: 
+        description: Reloads the ChestLock settings file
+        usage: /<command> (takes no arguments)
+    clsave:
+        aliases:
+        description: Saves the chests file
+        usage: /<command> (takes no arguments)
