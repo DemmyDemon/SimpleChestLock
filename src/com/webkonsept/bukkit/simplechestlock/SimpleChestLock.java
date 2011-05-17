@@ -72,7 +72,7 @@ public class SimpleChestLock extends JavaPlugin {
 			player = true;
 		}
 
-		if (command.getName().equalsIgnoreCase("clreload")){
+		if (command.getName().equalsIgnoreCase("sclreload")){
 			if ( !player  || this.permit((Player)sender, "simplechestlock.reload")){
 				this.loadConfig();
 				chests.load("Chests.txt");
@@ -83,7 +83,7 @@ public class SimpleChestLock extends JavaPlugin {
 				success = false;
 			}
 		}
-		else if (command.getName().equalsIgnoreCase("clsave")){
+		else if (command.getName().equalsIgnoreCase("sclsave")){
 			if (!player || this.permit((Player)sender, "simplechestlock.save")){
 				chests.save("Chests.txt");
 				sender.sendMessage("Successfully saved the chests file");
