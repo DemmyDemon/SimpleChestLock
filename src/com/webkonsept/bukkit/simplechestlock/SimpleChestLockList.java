@@ -1,4 +1,4 @@
-package com.webkonsept.bukkit.chestlock;
+package com.webkonsept.bukkit.simplechestlock;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -14,13 +15,14 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 
-public class ChestLockList {
-	ChestLock plugin;
+public class SimpleChestLockList {
+	SimpleChestLock plugin;
 	HashMap<Location,String> list = new HashMap<Location,String>();
 	
-	public ChestLockList(ChestLock instance) {
+	public SimpleChestLockList(SimpleChestLock instance) {
 		plugin = instance;
 	}
 	public void load (String filename) {
@@ -143,10 +145,19 @@ public class ChestLockList {
 			return false;
 		}
 	}
-	public boolean lock(Player player,Block block){
-		if (player == null || block == null || list == null) return false;
-		list.put(block.getLocation(), player.getName());
-		return true;
+	public Integer lock(Player player,Block block){
+		if (player == null || block == null || list == null) return 0;
+		if (block.getType().equals(Material.CHEST)){
+			list.put(block.getLocation(), player.getName());
+			Integer additionalLockedChests = 0;
+			if (plugin.lockpair){
+				additionalLockedChests += this.addNeighbouringChests(block,player.getName());
+			}
+			return 1 + additionalLockedChests;
+		}
+		else {
+			return 0;
+		}
 	}
 	public boolean unlock(Block block){
 		if (this.isLocked(block)){
@@ -159,5 +170,27 @@ public class ChestLockList {
 			}
 		}
 		return false;
+	}
+	private ArrayList<Block> getNeighbours (Block block) {
+		ArrayList<Block> neighbours = new ArrayList<Block>();
+		neighbours.add(block.getFace(BlockFace.NORTH));
+		neighbours.add(block.getFace(BlockFace.SOUTH));
+		neighbours.add(block.getFace(BlockFace.EAST));
+		neighbours.add(block.getFace(BlockFace.WEST));
+		
+		return neighbours;
+	}
+	private Integer addNeighbouringChests (Block block,String playerName) {
+		ArrayList<Block> neighbours = this.getNeighbours(block);
+		Iterator<Block> iterateNeighbours = neighbours.iterator();
+		Integer additionalChestsLocked = 0;
+		while (iterateNeighbours.hasNext()){
+			Block currentNeighbour = iterateNeighbours.next();
+			if (currentNeighbour.getType().equals(Material.CHEST)){
+				list.put(currentNeighbour.getLocation(), playerName);
+				additionalChestsLocked++;
+			}
+		}
+		return additionalChestsLocked;
 	}
 }

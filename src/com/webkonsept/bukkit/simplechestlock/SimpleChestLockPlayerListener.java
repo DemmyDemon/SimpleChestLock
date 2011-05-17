@@ -1,4 +1,4 @@
-package com.webkonsept.bukkit.chestlock;
+package com.webkonsept.bukkit.simplechestlock;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -9,10 +9,10 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerListener;
 import org.bukkit.inventory.ItemStack;
 
-public class ChestLockPlayerListener extends PlayerListener {
-	ChestLock plugin;
+public class SimpleChestLockPlayerListener extends PlayerListener {
+	SimpleChestLock plugin;
 	
-	public ChestLockPlayerListener(ChestLock instance) {
+	public SimpleChestLockPlayerListener(SimpleChestLock instance) {
 		plugin = instance;
 	}
 	public void onPlayerInteract (PlayerInteractEvent event){
@@ -78,8 +78,12 @@ public class ChestLockPlayerListener extends PlayerListener {
 							
 						}
 						else {
-							if (plugin.chests.lock(player, block)){
+							Integer chestsLocked = plugin.chests.lock(player, block);
+							if (chestsLocked == 1){
 								player.sendMessage(ChatColor.GREEN+"Chest locked!");
+							}
+							else if (chestsLocked > 1){
+								player.sendMessage(ChatColor.GREEN+""+chestsLocked+" chests locked!");
 							}
 							else{
 								player.sendMessage(ChatColor.RED+"Error encountered while locking chest!");

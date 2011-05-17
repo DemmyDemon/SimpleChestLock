@@ -1,4 +1,4 @@
-package com.webkonsept.bukkit.chestlock;
+package com.webkonsept.bukkit.simplechestlock;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,18 +22,19 @@ import org.bukkit.util.config.Configuration;
 import com.nijiko.permissions.PermissionHandler;
 import com.nijikokun.bukkit.Permissions.Permissions;
 
-public class ChestLock extends JavaPlugin {
+public class SimpleChestLock extends JavaPlugin {
 	private Logger log = Logger.getLogger("Minecraft");
 	private PermissionHandler Permissions;
 	private boolean usePermissions;
 	public boolean verbose = false;
+	public boolean lockpair = false;
 	public Material key = Material.STICK;
 	public Server server = null;
 	
-	private ChestLockPlayerListener 	playerListener 	= new ChestLockPlayerListener(this);
-	private ChestLockBlockListener 		blockListener 	= new ChestLockBlockListener(this);
-	private ChestLockEntityListener 	entityListener 	= new ChestLockEntityListener(this);
-	public  ChestLockList				chests			= new ChestLockList(this);
+	private SimpleChestLockPlayerListener 	playerListener 	= new SimpleChestLockPlayerListener(this);
+	private SimpleChestLockBlockListener 		blockListener 	= new SimpleChestLockBlockListener(this);
+	private SimpleChestLockEntityListener 	entityListener 	= new SimpleChestLockEntityListener(this);
+	public  SimpleChestLockList				chests			= new SimpleChestLockList(this);
 	
 	private HashMap<String,Boolean> fallbackPermissions = new HashMap<String,Boolean>();
 
@@ -157,6 +158,7 @@ public class ChestLock extends JavaPlugin {
 		config.load();
 		verbose = config.getBoolean("verbose", false);
 		Integer keyInt = config.getInt("key",280); // Stick
+		lockpair = config.getBoolean("lockpair", false);
 		
 		key = Material.getMaterial(keyInt);
 		if (key == null){

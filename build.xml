@@ -1,4 +1,4 @@
-<project name="ChestLock" default="buildJar">
+<project name="SimpleChestLock" default="buildJar">
 	<path id="class.path">
 		<fileset dir="./libs/" includes="*.jar" />
   	</path>

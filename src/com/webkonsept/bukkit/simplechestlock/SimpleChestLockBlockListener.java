@@ -1,4 +1,4 @@
-package com.webkonsept.bukkit.chestlock;
+package com.webkonsept.bukkit.simplechestlock;
 
 import org.bukkit.ChatColor;
 import org.bukkit.block.Block;
@@ -6,10 +6,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockListener;
 
-public class ChestLockBlockListener extends BlockListener {
-	ChestLock plugin;
+public class SimpleChestLockBlockListener extends BlockListener {
+	SimpleChestLock plugin;
 	
-	public ChestLockBlockListener(ChestLock instance) {
+	public SimpleChestLockBlockListener(SimpleChestLock instance) {
 		plugin = instance;
 	}
 	

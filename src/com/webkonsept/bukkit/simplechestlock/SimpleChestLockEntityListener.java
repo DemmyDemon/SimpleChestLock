@@ -1,4 +1,4 @@
-package com.webkonsept.bukkit.chestlock;
+package com.webkonsept.bukkit.simplechestlock;
 
 import java.util.Iterator;
 import java.util.List;
@@ -7,10 +7,10 @@ import org.bukkit.block.Block;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityListener;
 
-public class ChestLockEntityListener extends EntityListener {
-	ChestLock plugin;
+public class SimpleChestLockEntityListener extends EntityListener {
+	SimpleChestLock plugin;
 	
-	public ChestLockEntityListener(ChestLock instance) {
+	public SimpleChestLockEntityListener(SimpleChestLock instance) {
 		plugin = instance;
 	}
 	public void onEntityExplode (EntityExplodeEvent event){
