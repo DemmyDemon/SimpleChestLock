@@ -27,7 +27,7 @@ public class SimpleChestLockPlayerListener extends PlayerListener {
 				if (plugin.chests.isLocked(block)){
 					Player player = event.getPlayer();
 					String owner = plugin.chests.getOwner(block);
-					boolean ignoreOwner = plugin.permit(player, "chestlock.ignoreowner");
+					boolean ignoreOwner = plugin.permit(player, "simplechestlock.ignoreowner");
 					if (! owner.equalsIgnoreCase(player.getName()) && ! ignoreOwner){
 						event.setCancelled(true);
 						player.sendMessage(ChatColor.RED+"This chest was locked by "+owner);
@@ -45,20 +45,25 @@ public class SimpleChestLockPlayerListener extends PlayerListener {
 				if (tool == null) return; // TODO Support for "Air" or "Nothing" as key?
 				if (tool.getType().equals(plugin.key)){
 					Player player = event.getPlayer();
-					if (plugin.permit(player,"chestlock.lock")){
+					if (plugin.permit(player,"simplechestlock.lock")){
 						if (plugin.chests.isLocked(block)){
 							String owner = plugin.chests.getOwner(block);
 							if (owner.equalsIgnoreCase(player.getName())){
-								if (plugin.chests.unlock(block)){
+								Integer unlockedChests = plugin.chests.unlock(block);
+								if (unlockedChests == 1){
 									player.sendMessage(ChatColor.GREEN+"Chest unlocked");
+								}
+								else if (unlockedChests > 1){
+									player.sendMessage(ChatColor.GREEN+"Double chest unlocked");
 								}
 								else {
 									player.sendMessage(ChatColor.RED+"Error while unlocking your chest!");
 								}
 							}
-							else if (plugin.permit(player, "chestlock.ignoreowner")){
-								if (plugin.chests.unlock(block)){
-									Player ownerObject = plugin.server.getPlayer(owner);
+							else if (plugin.permit(player, "simplechestlock.ignoreowner")){
+								Integer unlockedChests = plugin.chests.unlock(block);
+								Player ownerObject = plugin.server.getPlayer(owner);
+								if (unlockedChests == 1){
 									if (ownerObject != null){
 										player.sendMessage(ChatColor.YELLOW+"Unlocked "+owner+"'s chest, and taddle-taled on you for it.");
 										ownerObject.sendMessage(ChatColor.YELLOW+player.getName()+" unlocked your chest using mystic powers!");
@@ -83,7 +88,7 @@ public class SimpleChestLockPlayerListener extends PlayerListener {
 								player.sendMessage(ChatColor.GREEN+"Chest locked!");
 							}
 							else if (chestsLocked > 1){
-								player.sendMessage(ChatColor.GREEN+""+chestsLocked+" chests locked!");
+								player.sendMessage(ChatColor.GREEN+"Double chest locked!");
 							}
 							else{
 								player.sendMessage(ChatColor.RED+"Error encountered while locking chest!");

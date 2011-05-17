@@ -27,12 +27,12 @@ public class SimpleChestLock extends JavaPlugin {
 	private PermissionHandler Permissions;
 	private boolean usePermissions;
 	public boolean verbose = false;
-	public boolean lockpair = false;
+	public boolean lockpair = true;
 	public Material key = Material.STICK;
 	public Server server = null;
 	
 	private SimpleChestLockPlayerListener 	playerListener 	= new SimpleChestLockPlayerListener(this);
-	private SimpleChestLockBlockListener 		blockListener 	= new SimpleChestLockBlockListener(this);
+	private SimpleChestLockBlockListener 	blockListener 	= new SimpleChestLockBlockListener(this);
 	private SimpleChestLockEntityListener 	entityListener 	= new SimpleChestLockEntityListener(this);
 	public  SimpleChestLockList				chests			= new SimpleChestLockList(this);
 	
@@ -48,10 +48,10 @@ public class SimpleChestLock extends JavaPlugin {
 	public void onEnable() {
 		loadConfig();
 		if(!setupPermissions()){
-			fallbackPermissions.put("chestlock.reload",false);
-			fallbackPermissions.put("chestlock.save",false);
-			fallbackPermissions.put("chestlock.ignoreowner",false);
-			fallbackPermissions.put("chestlock.lock", true);
+			fallbackPermissions.put("simplechestlock.reload",false);
+			fallbackPermissions.put("simplechestlock.save",false);
+			fallbackPermissions.put("simplechestlock.ignoreowner",false);
+			fallbackPermissions.put("simplechestlock.lock", true);
 		}
 		server = getServer();
 		chests.load("Chests.txt");
@@ -73,18 +73,18 @@ public class SimpleChestLock extends JavaPlugin {
 		}
 
 		if (command.getName().equalsIgnoreCase("clreload")){
-			if ( !player  || this.permit((Player)sender, "chestlock.reload")){
+			if ( !player  || this.permit((Player)sender, "simplechestlock.reload")){
 				this.loadConfig();
 				chests.load("Chests.txt");
 				sender.sendMessage("Successfully reloaded configuration and chest list");
 			}
 			else {
-				sender.sendMessage(ChatColor.RED+"[ChestLock] Sorry, permission denied!");
+				sender.sendMessage(ChatColor.RED+"[SimpleChestLock] Sorry, permission denied!");
 				success = false;
 			}
 		}
 		else if (command.getName().equalsIgnoreCase("clsave")){
-			if (!player || this.permit((Player)sender, "chestlock.save")){
+			if (!player || this.permit((Player)sender, "simplechestlock.save")){
 				chests.save("Chests.txt");
 				sender.sendMessage("Successfully saved the chests file");
 			}
@@ -158,7 +158,7 @@ public class SimpleChestLock extends JavaPlugin {
 		config.load();
 		verbose = config.getBoolean("verbose", false);
 		Integer keyInt = config.getInt("key",280); // Stick
-		lockpair = config.getBoolean("lockpair", false);
+		lockpair = config.getBoolean("lockpair", true);
 		
 		key = Material.getMaterial(keyInt);
 		if (key == null){

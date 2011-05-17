@@ -159,17 +159,22 @@ public class SimpleChestLockList {
 			return 0;
 		}
 	}
-	public boolean unlock(Block block){
+	public Integer unlock(Block block){
+		if (block == null) return 0;
 		if (this.isLocked(block)){
 			if (list != null){
 				list.remove(block.getLocation());
-				return true;
+				Integer additionalUnlockedChests = 0;
+				if (plugin.lockpair){
+					additionalUnlockedChests += this.removeNeighbouringChests(block);
+				}
+				return 1 + additionalUnlockedChests;
 			}
 			else {
-				return false;
+				return 0;
 			}
 		}
-		return false;
+		return 0;
 	}
 	private ArrayList<Block> getNeighbours (Block block) {
 		ArrayList<Block> neighbours = new ArrayList<Block>();
@@ -179,6 +184,19 @@ public class SimpleChestLockList {
 		neighbours.add(block.getFace(BlockFace.WEST));
 		
 		return neighbours;
+	}
+	private Integer removeNeighbouringChests (Block block) {
+		ArrayList<Block> neighbours = this.getNeighbours(block);
+		Iterator<Block> iterateNeighbours = neighbours.iterator();
+		Integer additionalChestsUnlocked = 0;
+		while (iterateNeighbours.hasNext()){
+			Block currentNeighbour = iterateNeighbours.next();
+			if (currentNeighbour.getType().equals(Material.CHEST)){
+				list.remove(currentNeighbour.getLocation());
+				additionalChestsUnlocked++;
+			}
+		}
+		return additionalChestsUnlocked;
 	}
 	private Integer addNeighbouringChests (Block block,String playerName) {
 		ArrayList<Block> neighbours = this.getNeighbours(block);

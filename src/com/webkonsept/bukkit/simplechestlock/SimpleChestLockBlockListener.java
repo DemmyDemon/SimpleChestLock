@@ -22,7 +22,7 @@ public class SimpleChestLockBlockListener extends BlockListener {
 		if (plugin.chests.isLocked(block)){
 			Player player = event.getPlayer();
 			String owner = plugin.chests.getOwner(block);
-			if (owner != player.getName() && ! plugin.permit(player,"chestlock.ignoreowner")){
+			if (owner != player.getName() && ! plugin.permit(player,"simplechestlock.ignoreowner")){
 				player.sendMessage(ChatColor.RED+"You can't break "+owner+"'s chest!");
 				event.setCancelled(true);
 			}
