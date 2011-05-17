@@ -95,9 +95,7 @@ public class SimpleChestLock extends JavaPlugin {
 		
 		boolean allow = false; // Default to GTFO
 		if ( usePermissions ){
-			if (Permissions.has(player,permission)){
-				allow = true;
-			}
+			allow = Permissions.has(player,permission);
 		}
 		else if (player.isOp()){
 			allow = true;

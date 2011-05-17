@@ -28,6 +28,7 @@ public class SimpleChestLockList {
 	public void load (String filename) {
 		File chestFile = new File (plugin.getDataFolder().toString()+"/"+filename);
 		plugin.babble("Reading chests from "+plugin.getDataFolder().getName()+"/"+filename);
+		list.clear();
 		if (!chestFile.exists()){
 			plugin.getDataFolder().mkdir();
 			try {

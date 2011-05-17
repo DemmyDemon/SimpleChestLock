@@ -27,6 +27,7 @@ public class SimpleChestLockPlayerListener extends PlayerListener {
 				if (plugin.chests.isLocked(block)){
 					Player player = event.getPlayer();
 					String owner = plugin.chests.getOwner(block);
+					plugin.babble(player.getName()+" wants to open "+owner+"'s chest");
 					boolean ignoreOwner = plugin.permit(player, "simplechestlock.ignoreowner");
 					if (! owner.equalsIgnoreCase(player.getName()) && ! ignoreOwner){
 						event.setCancelled(true);
