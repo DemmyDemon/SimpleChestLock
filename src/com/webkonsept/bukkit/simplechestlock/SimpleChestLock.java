@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Server;
+import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -31,6 +32,9 @@ public class SimpleChestLock extends JavaPlugin {
 	public Material key = Material.STICK;
 	public Server server = null;
 	
+	// Intended to hold the material in question and a boolean of weather or not it's double-lockable (like a double chest)
+	public HashMap<Material,Boolean> lockable = new HashMap<Material,Boolean>();
+	
 	private SimpleChestLockPlayerListener 	playerListener 	= new SimpleChestLockPlayerListener(this);
 	private SimpleChestLockBlockListener 	blockListener 	= new SimpleChestLockBlockListener(this);
 	private SimpleChestLockEntityListener 	entityListener 	= new SimpleChestLockEntityListener(this);
@@ -46,6 +50,7 @@ public class SimpleChestLock extends JavaPlugin {
 
 	@Override
 	public void onEnable() {
+		setupLockables();
 		loadConfig();
 		if(!setupPermissions()){
 			fallbackPermissions.put("simplechestlock.reload",false);
@@ -147,7 +152,31 @@ public class SimpleChestLock extends JavaPlugin {
 			return "s";
 		}
 	}
-
+	private void setupLockables() {
+		lockable.clear();
+		lockable.put(Material.CHEST,true);
+		//NOTE:  If double locking is enabled for furnaces, remember that a furnace and a burning furnace are NOT the same material!
+		// That means that double locking (which tests the neighboring blocks for .equals() on the material, won't work if one is burning. 
+		lockable.put(Material.FURNACE,false);
+		lockable.put(Material.BURNING_FURNACE,false);
+		
+		lockable.put(Material.DISPENSER,false);
+	}
+	public boolean canLock (Block block){
+		if (block == null) return false;
+		Material material = block.getType();
+		return lockable.containsKey(material);
+	}
+	public boolean canDoubleLock (Block block){
+		if (block == null) return false;
+		Material material = block.getType();
+		if (lockable.containsKey(material)){
+			return lockable.get(material);
+		}
+		else {
+			return false;
+		}
+	}
 	public void loadConfig() {
 		File configFile = new File(this.getDataFolder().toString()+"/settings.yml");
 		File configDir = this.getDataFolder();

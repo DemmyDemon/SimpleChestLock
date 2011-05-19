@@ -148,11 +148,11 @@ public class SimpleChestLockList {
 	}
 	public Integer lock(Player player,Block block){
 		if (player == null || block == null || list == null) return 0;
-		if (block.getType().equals(Material.CHEST)){
+		if (plugin.canLock(block)){
 			list.put(block.getLocation(), player.getName());
 			Integer additionalLockedChests = 0;
-			if (plugin.lockpair){
-				additionalLockedChests += this.addNeighbouringChests(block,player.getName());
+			if (plugin.lockpair && plugin.canDoubleLock(block)){
+				additionalLockedChests += this.addNeighboringChests(block,player.getName());
 			}
 			return 1 + additionalLockedChests;
 		}
@@ -166,8 +166,8 @@ public class SimpleChestLockList {
 			if (list != null){
 				list.remove(block.getLocation());
 				Integer additionalUnlockedChests = 0;
-				if (plugin.lockpair){
-					additionalUnlockedChests += this.removeNeighbouringChests(block);
+				if (plugin.lockpair && plugin.canDoubleLock(block)){
+					additionalUnlockedChests += this.removeNeighboringChests(block);
 				}
 				return 1 + additionalUnlockedChests;
 			}
@@ -186,26 +186,26 @@ public class SimpleChestLockList {
 		
 		return neighbours;
 	}
-	private Integer removeNeighbouringChests (Block block) {
+	private Integer removeNeighboringChests (Block block) {
 		ArrayList<Block> neighbours = this.getNeighbours(block);
 		Iterator<Block> iterateNeighbours = neighbours.iterator();
 		Integer additionalChestsUnlocked = 0;
 		while (iterateNeighbours.hasNext()){
 			Block currentNeighbour = iterateNeighbours.next();
-			if (currentNeighbour.getType().equals(Material.CHEST)){
+			if (currentNeighbour.getType().equals(block.getType())){
 				list.remove(currentNeighbour.getLocation());
 				additionalChestsUnlocked++;
 			}
 		}
 		return additionalChestsUnlocked;
 	}
-	private Integer addNeighbouringChests (Block block,String playerName) {
+	private Integer addNeighboringChests (Block block,String playerName) {
 		ArrayList<Block> neighbours = this.getNeighbours(block);
 		Iterator<Block> iterateNeighbours = neighbours.iterator();
 		Integer additionalChestsLocked = 0;
 		while (iterateNeighbours.hasNext()){
 			Block currentNeighbour = iterateNeighbours.next();
-			if (currentNeighbour.getType().equals(Material.CHEST)){
+			if (currentNeighbour.getType().equals(block.getType())){
 				list.put(currentNeighbour.getLocation(), playerName);
 				additionalChestsLocked++;
 			}
