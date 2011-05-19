@@ -1,7 +1,6 @@
 package com.webkonsept.bukkit.simplechestlock;
 
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
@@ -21,8 +20,7 @@ public class SimpleChestLockPlayerListener extends PlayerListener {
 		if ( event.isCancelled() ) return;
 		
 		Block block = event.getClickedBlock();
-		ItemStack foo = new ItemStack(Material.IRON_PICKAXE,1,(short) 40);
-		Material.IRON_PICKAXE.getId();
+		
 		if (block == null) return;  // We don't care about non-block (air) interactions.
 		if (plugin.canLock(block)){
 			if(event.getAction().equals(Action.RIGHT_CLICK_BLOCK)){
