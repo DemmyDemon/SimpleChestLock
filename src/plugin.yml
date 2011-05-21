@@ -1,6 +1,6 @@
 name: SimpleChestLock
 main: com.webkonsept.bukkit.simplechestlock.SimpleChestLock
-version: 0.2
+version: 0.3
 website: http://minecraft.webkonsept.com/
 author: Fredrik Vold
 database: false
