@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -68,8 +67,8 @@ public class SimpleChestLockList {
 					if (world != null && X != null && Y != null && Z != null){
 						Location location = new Location(world,X,Y,Z);
 						if ( ! list.containsKey(location)){
-							if(location.getBlock().getType().equals(Material.CHEST)){
-								plugin.babble("Added location to protection list:Player("+playerName+") World("+world+") X("+X+") Y("+Y+") Z("+Z+")");
+							if(plugin.lockable.containsKey(location.getBlock().getType())){
+								plugin.babble("Added location to protection list: Player("+playerName+") World("+world+") X("+X+") Y("+Y+") Z("+Z+")");
 								list.put(location, playerName);
 							}
 							else {
