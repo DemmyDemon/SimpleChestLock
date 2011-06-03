@@ -30,23 +30,24 @@ If you are upgrading from 0.1, be sure to actually delete the 0.1 JAR file, as i
 
 **Permission nodes**
 
-*simplechestlock.reload* - Access to the /clreload command 
-*simplechestlock.save* - Access to the /clsave command 
-*simplechestlock.ignoreowner* - Open and unlock other people's chests 
-*simplechestlock.lock* - Permission to lock chests 
+*simplechestlock.reload* - Access to the /clreload command  
+*simplechestlock.save* - Access to the /clsave command  
+*simplechestlock.ignoreowner* - Open and unlock other people's chests  
+*simplechestlock.lock* - Permission to lock chests  
 
 All but chestlock.lock are OP only when Permissions are unavailable.
 
 **Configuration**
 
-Upon first run, the plugin will create plugins/SimpleChestLock/settings.yml 
+Upon first run, the plugin will create plugins/SimpleChestLock/settings.yml   
 Default values:  
-    verbose: false
-    key: 280
-    lockpair: true
 
-Leave *verbose* off unless you want the plugin to tell you eeeeeeverything about itself. 
-The "key" is the ID of the preferred key object. 280 is a stick, Minecraft Data Values has all the IDs if you want to change this. 
-Remember to /sclsave before you /sclreload unless you want recently locked chests unlocked... 
-If lockpair is true, the plugin will lock the chest next to the one you slap as well, enabling automagic double chest locking. 
+    verbose: false  
+    key: 280  
+    lockpair: true  
+
+Leave *verbose* off unless you want the plugin to tell you eeeeeeverything about itself.  
+The "key" is the ID of the preferred key object. 280 is a stick, Minecraft Data Values has all the IDs if you want to change this.   
+Remember to /sclsave before you /sclreload unless you want recently locked chests unlocked...   
+If lockpair is true, the plugin will lock the chest next to the one you slap as well, enabling automagic double chest locking.   
 Turn this off if you want to share a chest with someone, but keep in mind that the setting is server global (all worlds!)
