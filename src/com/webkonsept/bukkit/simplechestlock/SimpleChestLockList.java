@@ -17,7 +17,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 
-public class SimpleChestLockList {
+public class SimpleChestLockList implements Runnable {
 	SimpleChestLock plugin;
 	HashMap<Location,String> list = new HashMap<Location,String>();
 	
@@ -210,5 +210,9 @@ public class SimpleChestLockList {
 			}
 		}
 		return additionalChestsLocked;
+	}
+	@Override
+	public void run() { // So saving to the default filename is easily scheduled
+		this.save("Chests.txt");
 	}
 }

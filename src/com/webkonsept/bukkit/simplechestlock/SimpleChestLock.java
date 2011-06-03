@@ -46,6 +46,7 @@ public class SimpleChestLock extends JavaPlugin {
 	public void onDisable() {
 		chests.save("Chests.txt");
 		this.out("Disabled!");
+		getServer().getScheduler().cancelTasks(this);
 	}
 
 	@Override
@@ -64,6 +65,7 @@ public class SimpleChestLock extends JavaPlugin {
 		pm.registerEvent(Event.Type.PLAYER_INTERACT,playerListener,Priority.Normal, this);
 		pm.registerEvent(Event.Type.BLOCK_BREAK,blockListener, Priority.Normal, this);
 		pm.registerEvent(Event.Type.ENTITY_EXPLODE,entityListener,Priority.Normal,this);
+		server.getScheduler().scheduleSyncRepeatingTask(this,chests, 6000, 6000);
 		this.out("Enabled!");
 	}
 	
