@@ -27,6 +27,7 @@ public class SimpleChestLockBlockListener extends BlockListener {
 				event.setCancelled(true);
 			}
 			else {
+				plugin.chests.unlock(block);
 				if (player.getName() != owner){
 					Player ownerPlayer = plugin.getServer().getPlayer(owner);
 					if (ownerPlayer != null){

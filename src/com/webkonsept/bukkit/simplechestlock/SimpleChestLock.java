@@ -156,10 +156,10 @@ public class SimpleChestLock extends JavaPlugin {
 		lockable.clear();
 		lockable.put(Material.CHEST,true);
 		//NOTE:  If double locking is enabled for furnaces, remember that a furnace and a burning furnace are NOT the same material!
-		// That means that double locking (which tests the neighboring blocks for .equals() on the material, won't work if one is burning. 
+		// That means that double locking, which tests the neighboring blocks for .equals() on the material, won't work if one is burning. 
 		lockable.put(Material.FURNACE,false);
 		lockable.put(Material.BURNING_FURNACE,false);
-		
+
 		lockable.put(Material.DISPENSER,false);
 	}
 	public boolean canLock (Block block){

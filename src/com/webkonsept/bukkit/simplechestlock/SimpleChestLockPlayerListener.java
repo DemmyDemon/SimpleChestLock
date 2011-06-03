@@ -15,10 +15,8 @@ public class SimpleChestLockPlayerListener extends PlayerListener {
 		plugin = instance;
 	}
 	public void onPlayerInteract (PlayerInteractEvent event){
-		
 		if (! plugin.isEnabled() ) return;
 		if ( event.isCancelled() ) return;
-		
 		Block block = event.getClickedBlock();
 		
 		if (block == null) return;  // We don't care about non-block (air) interactions.
