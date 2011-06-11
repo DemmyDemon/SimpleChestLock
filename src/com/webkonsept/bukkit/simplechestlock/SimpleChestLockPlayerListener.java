@@ -32,10 +32,14 @@ public class SimpleChestLockPlayerListener extends PlayerListener {
 						player.sendMessage(ChatColor.RED+"This container was locked by "+owner);
 					}
 					else if (! owner.equalsIgnoreCase(player.getName()) && ignoreOwner){
-						player.sendMessage(ChatColor.GREEN+owner+"'s container opened");
+						if (plugin.openMessage){
+							player.sendMessage(ChatColor.GREEN+owner+"'s container opened");
+						}
 					}
 					else {
-						player.sendMessage(ChatColor.GREEN+"Locked container opened");
+						if (plugin.openMessage){
+							player.sendMessage(ChatColor.GREEN+"Locked container opened");
+						}
 					}
 				}
 			}

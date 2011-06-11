@@ -30,6 +30,7 @@ public class SimpleChestLock extends JavaPlugin {
 	public boolean verbose = false;
 	public boolean lockpair = true;
 	public Material key = Material.STICK;
+	public boolean openMessage = true;
 	public Server server = null;
 	
 	// Intended to hold the material in question and a boolean of weather or not it's double-lockable (like a double chest)
@@ -188,7 +189,7 @@ public class SimpleChestLock extends JavaPlugin {
 		verbose = config.getBoolean("verbose", false);
 		Integer keyInt = config.getInt("key",280); // Stick
 		lockpair = config.getBoolean("lockpair", true);
-		
+		openMessage = config.getBoolean("openMessage", true);
 		key = Material.getMaterial(keyInt);
 		if (key == null){
 			key = Material.STICK;
@@ -207,5 +208,4 @@ public class SimpleChestLock extends JavaPlugin {
 			config.save();
 		}
 	}
-
 }
