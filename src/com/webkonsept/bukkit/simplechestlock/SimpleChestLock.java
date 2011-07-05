@@ -3,6 +3,7 @@ package com.webkonsept.bukkit.simplechestlock;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.logging.Logger;
 
 import org.bukkit.ChatColor;
@@ -35,6 +36,9 @@ public class SimpleChestLock extends JavaPlugin {
 	
 	// Intended to hold the material in question and a boolean of weather or not it's double-lockable (like a double chest)
 	public HashMap<Material,Boolean> lockable = new HashMap<Material,Boolean>();
+	
+	// Intended to hold the materials of items/blocked that can also be activated by left-click
+	public HashSet<Material> leftLocked = new HashSet<Material>();
 	
 	private SimpleChestLockPlayerListener 	playerListener 	= new SimpleChestLockPlayerListener(this);
 	private SimpleChestLockBlockListener 	blockListener 	= new SimpleChestLockBlockListener(this);
@@ -162,8 +166,16 @@ public class SimpleChestLock extends JavaPlugin {
 		// That means that double locking, which tests the neighboring blocks for .equals() on the material, won't work if one is burning. 
 		lockable.put(Material.FURNACE,false);
 		lockable.put(Material.BURNING_FURNACE,false);
-
 		lockable.put(Material.DISPENSER,false);
+		
+		// Levers, buttons and doors are special:  You can activate them with a left click.
+		// Hence, we have to lock interaction via LMB as well, making them "leftLocked"
+		lockable.put(Material.WOODEN_DOOR, true);
+		lockable.put(Material.LEVER,false);
+		lockable.put(Material.STONE_BUTTON,false);
+		leftLocked.add(Material.STONE_BUTTON);
+		leftLocked.add(Material.LEVER);
+		leftLocked.add(Material.WOODEN_DOOR);
 	}
 	public boolean canLock (Block block){
 		if (block == null) return false;

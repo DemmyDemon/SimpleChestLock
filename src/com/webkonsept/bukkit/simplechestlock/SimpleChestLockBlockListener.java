@@ -23,7 +23,7 @@ public class SimpleChestLockBlockListener extends BlockListener {
 			Player player = event.getPlayer();
 			String owner = plugin.chests.getOwner(block);
 			if (owner != player.getName() && ! plugin.permit(player,"simplechestlock.ignoreowner")){
-				player.sendMessage(ChatColor.RED+"You can't break "+owner+"'s container!");
+				player.sendMessage(ChatColor.RED+"You can't break "+owner+"'s block!");
 				event.setCancelled(true);
 			}
 			else {
@@ -31,16 +31,16 @@ public class SimpleChestLockBlockListener extends BlockListener {
 				if (player.getName() != owner){
 					Player ownerPlayer = plugin.getServer().getPlayer(owner);
 					if (ownerPlayer != null){
-						ownerPlayer.sendMessage(ChatColor.RED+player.getName()+" broke one of your locked containers.");
-						player.sendMessage(ChatColor.RED+"Owner informed that you broke the locked container!");
+						ownerPlayer.sendMessage(ChatColor.RED+player.getName()+" broke one of your locked blocks.");
+						player.sendMessage(ChatColor.RED+"Owner informed that you broke the locked block!");
 					}
 					else {
-						player.sendMessage(ChatColor.RED+"Locked container broken, but owner is offline and not informed.");
+						player.sendMessage(ChatColor.RED+"Locked block broken, but owner is offline and not informed.");
 					}
 					
 				}
 				else {
-					player.sendMessage(ChatColor.GREEN+"Locked container broken!");
+					player.sendMessage(ChatColor.GREEN+"Locked block broken!");
 				}
 			}
 		}

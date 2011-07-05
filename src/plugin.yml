@@ -1,6 +1,6 @@
 name: SimpleChestLock
 main: com.webkonsept.bukkit.simplechestlock.SimpleChestLock
-version: 0.6
+version: 0.7
 website: http://minecraft.webkonsept.com/plugins/details/SimpleChestLock.jar
 location: http://minecraft.webkonsept.com/plugins/download/SimpleChestLock.jar
 author: Fredrik Vold
@@ -8,8 +8,8 @@ database: false
 bukget: true
 thread: http://forums.bukkit.org/threads/SimpleChestLock.17557/
 build:
-    min: 860
-    max: 928
+    min: 935
+    max: 953
 categories:
     - SEC
     - MECH
