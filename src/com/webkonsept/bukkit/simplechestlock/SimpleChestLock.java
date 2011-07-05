@@ -176,6 +176,10 @@ public class SimpleChestLock extends JavaPlugin {
 		leftLocked.add(Material.STONE_BUTTON);
 		leftLocked.add(Material.LEVER);
 		leftLocked.add(Material.WOODEN_DOOR);
+		
+		// And now:  Pressure plates!
+		lockable.put(Material.STONE_PLATE,false);
+		lockable.put(Material.WOOD_PLATE,false);
 	}
 	public boolean canLock (Block block){
 		if (block == null) return false;

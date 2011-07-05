@@ -1,6 +1,6 @@
 name: SimpleChestLock
 main: com.webkonsept.bukkit.simplechestlock.SimpleChestLock
-version: 0.7
+version: 0.8
 website: http://minecraft.webkonsept.com/plugins/details/SimpleChestLock.jar
 location: http://minecraft.webkonsept.com/plugins/download/SimpleChestLock.jar
 author: Fredrik Vold

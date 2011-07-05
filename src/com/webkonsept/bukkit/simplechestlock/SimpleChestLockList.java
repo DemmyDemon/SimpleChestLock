@@ -7,9 +7,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.HashSet;
 
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -109,9 +108,7 @@ public class SimpleChestLockList implements Runnable {
 		
 		try {
 			BufferedWriter out = new BufferedWriter(new FileWriter(chestFile));
-			Iterator<Location> iterator = list.keySet().iterator();
-			while (iterator.hasNext()){
-				Location location = iterator.next();
+			for (Location location : list.keySet()){
 				String playerName = list.get(location);
 				out.write(playerName+","+location.getWorld().getName()+","+location.getX()+","+location.getY()+","+location.getZ());
 				out.newLine();
@@ -148,12 +145,15 @@ public class SimpleChestLockList implements Runnable {
 	public Integer lock(Player player,Block block){
 		if (player == null || block == null || list == null) return 0;
 		if (plugin.canLock(block)){
-			list.put(block.getLocation(), player.getName());
-			Integer additionalLockedChests = 0;
+			Integer lockedChests = 0;
 			if (plugin.lockpair && plugin.canDoubleLock(block)){
-				additionalLockedChests += this.addNeighboringChests(block,player.getName());
+				lockedChests = this.addNeighboringChests(block,player.getName());
 			}
-			return 1 + additionalLockedChests;
+			else {
+				list.put(block.getLocation(), player.getName());
+				lockedChests = 1;
+			}
+			return lockedChests;
 		}
 		else {
 			return 0;
@@ -163,12 +163,16 @@ public class SimpleChestLockList implements Runnable {
 		if (block == null) return 0;
 		if (this.isLocked(block)){
 			if (list != null){
-				list.remove(block.getLocation());
-				Integer additionalUnlockedChests = 0;
+				
+				Integer unlockedChests = 0;
 				if (plugin.lockpair && plugin.canDoubleLock(block)){
-					additionalUnlockedChests += this.removeNeighboringChests(block);
+					unlockedChests = this.removeNeighboringChests(block);
 				}
-				return 1 + additionalUnlockedChests;
+				else {
+					list.remove(block.getLocation());
+					unlockedChests = 1;
+				}
+				return unlockedChests;
 			}
 			else {
 				return 0;
@@ -176,36 +180,45 @@ public class SimpleChestLockList implements Runnable {
 		}
 		return 0;
 	}
-	private ArrayList<Block> getNeighbours (Block block) {
-		ArrayList<Block> neighbours = new ArrayList<Block>();
+	private HashSet<Block> getNeighbours (Block block) {
+		HashSet<Block> neighbours = new HashSet<Block>();
+		neighbours.add(block);
 		neighbours.add(block.getFace(BlockFace.NORTH));
 		neighbours.add(block.getFace(BlockFace.SOUTH));
 		neighbours.add(block.getFace(BlockFace.EAST));
 		neighbours.add(block.getFace(BlockFace.WEST));
+		// For doors
+		neighbours.add(block.getFace(BlockFace.UP));
+		neighbours.add(block.getFace(BlockFace.DOWN));
+		HashSet<Block> additionalNeighbours = new HashSet<Block>();
+		for (Block neighbour : neighbours){
+			additionalNeighbours.add(neighbour.getFace(BlockFace.UP));
+			additionalNeighbours.add(neighbour.getFace(BlockFace.DOWN));
+		}
+		neighbours.addAll(additionalNeighbours);
+		
 		
 		return neighbours;
 	}
 	private Integer removeNeighboringChests (Block block) {
-		ArrayList<Block> neighbours = this.getNeighbours(block);
-		Iterator<Block> iterateNeighbours = neighbours.iterator();
+		String playerName = getOwner(block);
 		Integer additionalChestsUnlocked = 0;
-		while (iterateNeighbours.hasNext()){
-			Block currentNeighbour = iterateNeighbours.next();
+		for (Block currentNeighbour : this.getNeighbours(block)){
 			if (currentNeighbour.getType().equals(block.getType())){
-				list.remove(currentNeighbour.getLocation());
-				additionalChestsUnlocked++;
+				String owner = this.getOwner(currentNeighbour);
+				if (owner != null && owner.equals(playerName)){
+					list.remove(currentNeighbour.getLocation());
+					additionalChestsUnlocked++;
+				}
 			}
 		}
 		return additionalChestsUnlocked;
 	}
-	private Integer addNeighboringChests (Block block,String playerName) {
-		ArrayList<Block> neighbours = this.getNeighbours(block);
-		Iterator<Block> iterateNeighbours = neighbours.iterator();
+	private Integer addNeighboringChests (Block block,String ownerName) {
 		Integer additionalChestsLocked = 0;
-		while (iterateNeighbours.hasNext()){
-			Block currentNeighbour = iterateNeighbours.next();
+		for (Block currentNeighbour : this.getNeighbours(block)){
 			if (currentNeighbour.getType().equals(block.getType())){
-				list.put(currentNeighbour.getLocation(), playerName);
+				list.put(currentNeighbour.getLocation(), ownerName);
 				additionalChestsLocked++;
 			}
 		}
