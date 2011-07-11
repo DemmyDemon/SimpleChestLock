@@ -69,6 +69,7 @@ public class SimpleChestLock extends JavaPlugin {
 		PluginManager pm = getServer().getPluginManager();
 		pm.registerEvent(Event.Type.PLAYER_INTERACT,playerListener,Priority.Normal, this);
 		pm.registerEvent(Event.Type.BLOCK_BREAK,blockListener, Priority.Normal, this);
+		pm.registerEvent(Event.Type.BLOCK_PLACE,blockListener, Priority.Normal, this);
 		pm.registerEvent(Event.Type.ENTITY_EXPLODE,entityListener,Priority.Normal,this);
 		server.getScheduler().scheduleSyncRepeatingTask(this,chests, 6000, 6000);
 		this.out("Enabled!");
@@ -173,9 +174,12 @@ public class SimpleChestLock extends JavaPlugin {
 		lockable.put(Material.WOODEN_DOOR, true);
 		lockable.put(Material.LEVER,false);
 		lockable.put(Material.STONE_BUTTON,false);
+		lockable.put(Material.TRAP_DOOR, false);
 		leftLocked.add(Material.STONE_BUTTON);
 		leftLocked.add(Material.LEVER);
 		leftLocked.add(Material.WOODEN_DOOR);
+		leftLocked.add(Material.TRAP_DOOR);
+		
 		
 		// And now:  Pressure plates!
 		lockable.put(Material.STONE_PLATE,false);

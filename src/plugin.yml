@@ -1,23 +1,29 @@
 name: SimpleChestLock
 main: com.webkonsept.bukkit.simplechestlock.SimpleChestLock
-version: 0.8
-website: http://minecraft.webkonsept.com/plugins/details/SimpleChestLock.jar
-location: http://minecraft.webkonsept.com/plugins/download/SimpleChestLock.jar
-author: Fredrik Vold
-database: false
-bukget: true
+version: 0.9
+branch: stable
 thread: http://forums.bukkit.org/threads/SimpleChestLock.17557/
-build:
-    min: 935
-    max: 953
-categories:
-    - SEC
-    - MECH
-description: Gives players the ability to lock chests
+website: http://minecraft.webkonsept.com/plugins/details/SimpleChestLock.html
+location: http://minecraft.webkonsept.com/plugins/download/SimpleChestLock.jar
+database: false
 commands:
     sclreload: 
-        description: Reloads the ChestLock settings file
+        description: Reloads the ChestLock settings file and locked items list
         usage: /<command> (takes no arguments)
     sclsave:
         description: Saves the chests file
         usage: /<command> (takes no arguments)
+generators: [bukget]
+categories: [ SEC, MECH ]
+description: Gives players the ability to lock chests and other blocks.
+maintainer: DemmyDemon
+authors: [DemmyDemon]
+conflicts: []
+required: []
+optional: [Permissions]
+engines:
+    craftbukkit:
+        min: 935
+        max: 953
+
+

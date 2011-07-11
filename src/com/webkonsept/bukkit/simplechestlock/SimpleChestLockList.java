@@ -180,7 +180,7 @@ public class SimpleChestLockList implements Runnable {
 		}
 		return 0;
 	}
-	private HashSet<Block> getNeighbours (Block block) {
+	protected HashSet<Block> getNeighbours (Block block) {
 		HashSet<Block> neighbours = new HashSet<Block>();
 		neighbours.add(block);
 		neighbours.add(block.getFace(BlockFace.NORTH));
@@ -190,6 +190,8 @@ public class SimpleChestLockList implements Runnable {
 		// For doors
 		neighbours.add(block.getFace(BlockFace.UP));
 		neighbours.add(block.getFace(BlockFace.DOWN));
+		
+		
 		HashSet<Block> additionalNeighbours = new HashSet<Block>();
 		for (Block neighbour : neighbours){
 			additionalNeighbours.add(neighbour.getFace(BlockFace.UP));
