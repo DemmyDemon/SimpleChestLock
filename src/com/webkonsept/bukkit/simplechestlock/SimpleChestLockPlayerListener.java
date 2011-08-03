@@ -44,7 +44,7 @@ public class SimpleChestLockPlayerListener extends PlayerListener {
 				if (plugin.chests.isLocked(block)){
 					Player player = event.getPlayer();
 					String owner = plugin.chests.getOwner(block);
-					plugin.babble(player.getName()+" wants to use "+owner+"'s block");
+					plugin.babble(player.getName()+" wants to use "+owner+"'s "+typename);
 					boolean ignoreOwner = plugin.permit(player, "simplechestlock.ignoreowner");
 					if (! owner.equalsIgnoreCase(player.getName()) && ! ignoreOwner){
 						event.setCancelled(true);
@@ -112,15 +112,23 @@ public class SimpleChestLockPlayerListener extends PlayerListener {
 							
 						}
 						else {
-							Integer chestsLocked = plugin.chests.lock(player, block);
-							if (chestsLocked == 1){
-								player.sendMessage(ChatColor.GREEN+ucfirst(typename)+" locked!");
+							if (
+								!(plugin.usePermissionsWhitelist)
+								|| ( plugin.usePermissionsWhitelist && plugin.permit(player, new String[]{"simplechestlock.lock.*","simplechestlock.lock."+block.getType().toString()}))
+							){
+								Integer chestsLocked = plugin.chests.lock(player, block);
+								if (chestsLocked == 1){
+									player.sendMessage(ChatColor.GREEN+ucfirst(typename)+" locked!");
+								}
+								else if (chestsLocked > 1){
+									player.sendMessage(ChatColor.GREEN+chestsLocked.toString()+" "+typename+"s locked!");
+								}
+								else{
+									player.sendMessage(ChatColor.RED+"Error encountered while locking this "+typename);
+								}
 							}
-							else if (chestsLocked > 1){
-								player.sendMessage(ChatColor.GREEN+chestsLocked.toString()+" "+typename+"s locked!");
-							}
-							else{
-								player.sendMessage(ChatColor.RED+"Error encountered while locking this "+typename);
+							else if (plugin.usePermissionsWhitelist){
+								player.sendMessage(ChatColor.RED+"Sorry, you are not allowed to lock "+block.getType().toString());
 							}
 						}
 					}

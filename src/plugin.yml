@@ -1,6 +1,6 @@
 name: SimpleChestLock
 main: com.webkonsept.bukkit.simplechestlock.SimpleChestLock
-version: 0.9
+version: 0.10.2
 branch: stable
 thread: http://forums.bukkit.org/threads/SimpleChestLock.17557/
 website: http://minecraft.webkonsept.com/plugins/details/SimpleChestLock.html
@@ -21,9 +21,40 @@ authors: [DemmyDemon]
 conflicts: []
 required: []
 optional: [Permissions]
+permissions:
+    simplechestlock.*:
+        description: Full access
+        children:
+            simplechestlock.command.*: true
+            simplechestlock.ignoreowner: true
+            simplechestlock.lock.*: true
+            simplechestlock.lock: true
+    simplechestlock.command.*:
+        description: Access to both commands
+        children:
+            simplechestlock.command.reload: true
+            simplechestlock.command.save: true
+    simplechestlock.command.reload:
+        description: Access to /sclreload
+        default: op
+    simplechestlock.command.save:
+        description: Access to /sclsave
+        default: op
+    simplechestlock.ignoreowner:
+        description: Unlock any item, use any item.
+        default: op
+    simplechestlock.lock:
+        description: Access to locking items
+        default: op
+    simplechestlock.lock.*:
+        description: Lock any lockable item
+        default: op
+    simplechestlock.lock.Lockable_Name_Here:
+        description: Gives permission to lock Lockable_Name_Here blocks
+        default: op
 engines:
     craftbukkit:
-        min: 935
-        max: 953
+        min: 1000
+        max: 1000
 
 

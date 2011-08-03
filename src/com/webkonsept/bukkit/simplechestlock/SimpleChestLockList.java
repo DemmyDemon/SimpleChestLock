@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -44,7 +45,6 @@ public class SimpleChestLockList implements Runnable {
 			String line = "";
 			while (line != null){
 				line = in.readLine();
-				plugin.babble(line);
 				if (line != null){
 					String[] elements = line.split(",", 5);
 					String playerName = elements[0];
@@ -66,12 +66,13 @@ public class SimpleChestLockList implements Runnable {
 					if (world != null && X != null && Y != null && Z != null){
 						Location location = new Location(world,X,Y,Z);
 						if ( ! list.containsKey(location)){
-							if(plugin.lockable.containsKey(location.getBlock().getType())){
+							Material type = location.getBlock().getType();
+							if(plugin.lockable.containsKey(type)){
 								plugin.babble("Added location to protection list: Player("+playerName+") World("+world+") X("+X+") Y("+Y+") Z("+Z+")");
 								list.put(location, playerName);
 							}
 							else {
-								plugin.crap("Protected location has no chest!  Outside the scope of this plugin, so I'm --NOT-- protecting it!");
+								plugin.crap("Protected location is a "+type.toString()+"!  Outside the scope of this plugin, so I'm --NOT-- protecting it!");
 							}
 						}
 					}
@@ -183,19 +184,19 @@ public class SimpleChestLockList implements Runnable {
 	protected HashSet<Block> getNeighbours (Block block) {
 		HashSet<Block> neighbours = new HashSet<Block>();
 		neighbours.add(block);
-		neighbours.add(block.getFace(BlockFace.NORTH));
-		neighbours.add(block.getFace(BlockFace.SOUTH));
-		neighbours.add(block.getFace(BlockFace.EAST));
-		neighbours.add(block.getFace(BlockFace.WEST));
+		neighbours.add(block.getRelative(BlockFace.NORTH));
+		neighbours.add(block.getRelative(BlockFace.SOUTH));
+		neighbours.add(block.getRelative(BlockFace.EAST));
+		neighbours.add(block.getRelative(BlockFace.WEST));
 		// For doors
-		neighbours.add(block.getFace(BlockFace.UP));
-		neighbours.add(block.getFace(BlockFace.DOWN));
+		neighbours.add(block.getRelative(BlockFace.UP));
+		neighbours.add(block.getRelative(BlockFace.DOWN));
 		
 		
 		HashSet<Block> additionalNeighbours = new HashSet<Block>();
 		for (Block neighbour : neighbours){
-			additionalNeighbours.add(neighbour.getFace(BlockFace.UP));
-			additionalNeighbours.add(neighbour.getFace(BlockFace.DOWN));
+			additionalNeighbours.add(neighbour.getRelative(BlockFace.UP));
+			additionalNeighbours.add(neighbour.getRelative(BlockFace.DOWN));
 		}
 		neighbours.addAll(additionalNeighbours);
 		

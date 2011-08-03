@@ -27,12 +27,14 @@ import com.nijikokun.bukkit.Permissions.Permissions;
 public class SimpleChestLock extends JavaPlugin {
 	private Logger log = Logger.getLogger("Minecraft");
 	private PermissionHandler Permissions;
-	private boolean usePermissions;
-	public boolean verbose = false;
-	public boolean lockpair = true;
-	public Material key = Material.STICK;
-	public boolean openMessage = true;
-	public Server server = null;
+	protected boolean usePermissions;
+	protected boolean verbose = false;
+	protected boolean lockpair = true;
+	protected Material key = Material.STICK;
+	protected boolean openMessage = true;
+	protected boolean usePermissionsWhitelist = false;
+	
+	protected Server server = null;
 	
 	// Intended to hold the material in question and a boolean of weather or not it's double-lockable (like a double chest)
 	public HashMap<Material,Boolean> lockable = new HashMap<Material,Boolean>();
@@ -43,10 +45,8 @@ public class SimpleChestLock extends JavaPlugin {
 	private SimpleChestLockPlayerListener 	playerListener 	= new SimpleChestLockPlayerListener(this);
 	private SimpleChestLockBlockListener 	blockListener 	= new SimpleChestLockBlockListener(this);
 	private SimpleChestLockEntityListener 	entityListener 	= new SimpleChestLockEntityListener(this);
-	public  SimpleChestLockList				chests			= new SimpleChestLockList(this);
+	protected SimpleChestLockList			chests			= new SimpleChestLockList(this);
 	
-	private HashMap<String,Boolean> fallbackPermissions = new HashMap<String,Boolean>();
-
 	@Override
 	public void onDisable() {
 		chests.save("Chests.txt");
@@ -58,12 +58,7 @@ public class SimpleChestLock extends JavaPlugin {
 	public void onEnable() {
 		setupLockables();
 		loadConfig();
-		if(!setupPermissions()){
-			fallbackPermissions.put("simplechestlock.reload",false);
-			fallbackPermissions.put("simplechestlock.save",false);
-			fallbackPermissions.put("simplechestlock.ignoreowner",false);
-			fallbackPermissions.put("simplechestlock.lock", true);
-		}
+		usePermissions = setupPermissions();
 		server = getServer();
 		chests.load("Chests.txt");
 		PluginManager pm = getServer().getPluginManager();
@@ -104,40 +99,43 @@ public class SimpleChestLock extends JavaPlugin {
 		}
 		return success;
 	}
-	public boolean permit(Player player,String permission){ 
+	public boolean permit(Player player,String[] permissions){ 
 		
-		boolean allow = false; // Default to GTFO
-		if ( usePermissions ){
-			allow = Permissions.has(player,permission);
-		}
-		else if (player.isOp()){
-			allow = true;
-		}
-		else {
-			if (fallbackPermissions.get(permission) || false){
-				allow = true;
-			}
-		}
-		this.babble(player.getName()+" asked permission to "+permission+": "+allow);
-		return allow;
-	}
-	private boolean setupPermissions() {
-		Plugin test = this.getServer().getPluginManager().getPlugin("Permissions");
-		if (this.Permissions == null){
-			if (test != null){
-				this.Permissions = ((Permissions)test).getHandler();
-				this.usePermissions = true;
-				return true;
+		if (player == null) return false;
+		if (permissions == null) return false;
+		String playerName = player.getName();
+		boolean permit = false;
+		for (String permission : permissions){
+			if (usePermissions){
+				permit = Permissions.permission(player, permission);
 			}
 			else {
-				this.out("Permissions plugin not found, defaulting to OPS CHECK mode");
-				return false;
+				permit = player.hasPermission(permission);
+			}
+			if (permit){
+				babble("Permission granted: "+playerName+"->"+permission);
+				break;
+			}
+			else {
+				babble("Permission denied: "+playerName+"->"+permission);
 			}
 		}
-		else {
-			this.out("Urr, this is odd...  Permissions are already set up!");
-			return true;
+		return permit;
+		
+	}
+	public boolean permit(Player player,String permission){
+		return permit(player,new String[]{permission});
+	}
+	private boolean setupPermissions() {
+		boolean crap = false;
+		
+		Plugin test = this.getServer().getPluginManager().getPlugin("Permissions");
+		if (test != null){
+			crap = true;
+			this.Permissions = ((Permissions)test).getHandler();
 		}
+		
+		return crap;
 	}
 	public void out(String message) {
 		PluginDescriptionFile pdfFile = this.getDescription();
@@ -162,12 +160,14 @@ public class SimpleChestLock extends JavaPlugin {
 	}
 	private void setupLockables() {
 		lockable.clear();
+		// DEFAULT VALUES
 		lockable.put(Material.CHEST,true);
 		//NOTE:  If double locking is enabled for furnaces, remember that a furnace and a burning furnace are NOT the same material!
 		// That means that double locking, which tests the neighboring blocks for .equals() on the material, won't work if one is burning. 
 		lockable.put(Material.FURNACE,false);
 		lockable.put(Material.BURNING_FURNACE,false);
 		lockable.put(Material.DISPENSER,false);
+		lockable.put(Material.JUKEBOX,false);
 		
 		// Levers, buttons and doors are special:  You can activate them with a left click.
 		// Hence, we have to lock interaction via LMB as well, making them "leftLocked"
@@ -184,6 +184,7 @@ public class SimpleChestLock extends JavaPlugin {
 		// And now:  Pressure plates!
 		lockable.put(Material.STONE_PLATE,false);
 		lockable.put(Material.WOOD_PLATE,false);
+
 	}
 	public boolean canLock (Block block){
 		if (block == null) return false;
@@ -209,6 +210,7 @@ public class SimpleChestLock extends JavaPlugin {
 		verbose = config.getBoolean("verbose", false);
 		Integer keyInt = config.getInt("key",280); // Stick
 		lockpair = config.getBoolean("lockpair", true);
+		usePermissionsWhitelist = config.getBoolean("usePermissionsWhitelist",false);
 		openMessage = config.getBoolean("openMessage", true);
 		key = Material.getMaterial(keyInt);
 		if (key == null){
