@@ -72,7 +72,7 @@ public class SimpleChestLockList implements Runnable {
 								list.put(location, playerName);
 							}
 							else {
-								plugin.crap("Protected location is a "+type.toString()+"!  Outside the scope of this plugin, so I'm --NOT-- protecting it!");
+								plugin.crap(type.toString()+" not a lockable block at World("+world+") X("+X+") Y("+Y+") Z("+Z+")! "+playerName+"'s block was moved, or severe configuration change?");
 							}
 						}
 					}
