@@ -1,12 +1,14 @@
 package com.webkonsept.bukkit.simplechestlock;
 
 import org.bukkit.ChatColor;
+import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerListener;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 public class SimpleChestLockPlayerListener extends PlayerListener {
@@ -31,33 +33,57 @@ public class SimpleChestLockPlayerListener extends PlayerListener {
 		
 		if (block == null) return;  // We don't care about non-block (air) interactions.
 		if (plugin.canLock(block)){
-			String typename = block.getType().toString().replaceAll("_", " ").toLowerCase();
+			String typeName = block.getType().toString().replaceAll("_", " ").toLowerCase();
 			if(
 					event.getAction().equals(Action.RIGHT_CLICK_BLOCK) 
 					|| ( 
 						event.getAction().equals(Action.LEFT_CLICK_BLOCK)
 						&& plugin.leftLocked.contains(block.getType())
-						&& !(toolUsed.equals(plugin.key))
+						&& !(toolUsed.equals(plugin.key) || toolUsed.equals(plugin.comboKey))
 					)
 					|| event.getAction().equals(Action.PHYSICAL)
 			){
 				if (plugin.chests.isLocked(block)){
 					Player player = event.getPlayer();
 					String owner = plugin.chests.getOwner(block);
-					plugin.babble(player.getName()+" wants to use "+owner+"'s "+typename);
+					plugin.babble(player.getName()+" wants to use "+owner+"'s "+typeName);
 					boolean ignoreOwner = plugin.permit(player, "simplechestlock.ignoreowner");
-					if (! owner.equalsIgnoreCase(player.getName()) && ! ignoreOwner){
-						event.setCancelled(true);
-						player.sendMessage(ChatColor.RED+"Access denied to "+owner+"'s "+typename);
+					
+					if (plugin.chests.isComboLocked(block) && ! owner.equalsIgnoreCase(player.getName()) && ! ignoreOwner){
+						Inventory inv = player.getInventory();
+						if (
+								inv.getItem(0).getType().equals(Material.WOOL)
+								&& inv.getItem(1).getType().equals(Material.WOOL)
+								&& inv.getItem(2).getType().equals(Material.WOOL)
+						){
+							DyeColor tumbler1 = DyeColor.getByData(inv.getItem(0).getData().getData());
+							DyeColor tumbler2 = DyeColor.getByData(inv.getItem(1).getData().getData());
+							DyeColor tumbler3 = DyeColor.getByData(inv.getItem(2).getData().getData());
+							DyeColor[] combo = {tumbler1,tumbler2,tumbler3};
+							SimpleChestLockItem item = plugin.chests.list.get(block.getLocation());
+							if (!item.correctCombo(combo)){
+								player.sendMessage(ChatColor.RED+owner+"'s "+typeName+" has a different combination...");
+								event.setCancelled(true);
+							}
+						}
+						else {
+							player.sendMessage(ChatColor.RED+owner+"'s "+typeName+" is locked with a combination lock.");
+							event.setCancelled(true);
+						}
 					}
+					else if (! owner.equalsIgnoreCase(player.getName()) && ! ignoreOwner){
+						event.setCancelled(true);
+						player.sendMessage(ChatColor.RED+"Access denied to "+owner+"'s "+typeName);
+					}
+
 					else if (! owner.equalsIgnoreCase(player.getName()) && ignoreOwner){
 						if (plugin.openMessage){
-							player.sendMessage(ChatColor.GREEN+"Access granted to "+owner+"'s "+typename);
+							player.sendMessage(ChatColor.GREEN+"Access granted to "+owner+"'s "+typeName);
 						}
 					}
 					else {
 						if (plugin.openMessage){
-							player.sendMessage(ChatColor.GREEN+"Access granted to "+typename);
+							player.sendMessage(ChatColor.GREEN+"Access granted to "+typeName);
 						}
 					}
 				}
@@ -65,7 +91,7 @@ public class SimpleChestLockPlayerListener extends PlayerListener {
 			else if (event.getAction().equals(Action.LEFT_CLICK_BLOCK)){
 				ItemStack tool = event.getItem();
 				if (tool == null) return;
-				if (tool.getType().equals(plugin.key)){
+				if (tool.getType().equals(plugin.key) || tool.getType().equals(plugin.comboKey)){
 					event.setCancelled(true);
 					Player player = event.getPlayer();
 					if (plugin.permit(player,"simplechestlock.lock")){
@@ -74,13 +100,13 @@ public class SimpleChestLockPlayerListener extends PlayerListener {
 							if (owner.equalsIgnoreCase(player.getName())){
 								Integer unlockedChests = plugin.chests.unlock(block);
 								if (unlockedChests == 1){
-									player.sendMessage(ChatColor.GREEN+ucfirst(typename)+" unlocked");
+									player.sendMessage(ChatColor.GREEN+ucfirst(typeName)+" unlocked");
 								}
 								else if (unlockedChests > 1){
-									player.sendMessage(ChatColor.GREEN+unlockedChests.toString()+" "+typename+"s unlocked");
+									player.sendMessage(ChatColor.GREEN+unlockedChests.toString()+" "+typeName+"s unlocked");
 								}
 								else {
-									player.sendMessage(ChatColor.RED+"Error while unlocking your "+typename);
+									player.sendMessage(ChatColor.RED+"Error while unlocking your "+typeName);
 								}
 							}
 							else if (plugin.permit(player, "simplechestlock.ignoreowner")){
@@ -88,21 +114,21 @@ public class SimpleChestLockPlayerListener extends PlayerListener {
 								Player ownerObject = plugin.server.getPlayer(owner);
 								if (unlockedChests == 1){
 									if (ownerObject != null){
-										player.sendMessage(ChatColor.YELLOW+"Unlocked "+owner+"'s "+typename+", and taddle-taled on you for it.");
-										ownerObject.sendMessage(ChatColor.YELLOW+player.getName()+" unlocked your "+typename+" using mystic powers!");
+										player.sendMessage(ChatColor.YELLOW+"Unlocked "+owner+"'s "+typeName+", and taddle-taled on you for it.");
+										ownerObject.sendMessage(ChatColor.YELLOW+player.getName()+" unlocked your "+typeName+" using mystic powers!");
 									}
 									else {
-										player.sendMessage(ChatColor.YELLOW+"Unlocked "+owner+"'s "+typename+", but that user is offline, and was not notified.");
+										player.sendMessage(ChatColor.YELLOW+"Unlocked "+owner+"'s "+typeName+", but that user is offline, and was not notified.");
 									}
 								}
 								else if (unlockedChests > 1){
 									if (ownerObject != null){
-										player.sendMessage(ChatColor.YELLOW+"Unlocked "+owner+"'s "+unlockedChests.toString()+" "+typename+"s, and taddle-taled on you for it.");
-										ownerObject.sendMessage(ChatColor.YELLOW+player.getName()+" unlocked "+unlockedChests.toString()+" of your "+typename+"s using mystic powers!");
+										player.sendMessage(ChatColor.YELLOW+"Unlocked "+owner+"'s "+unlockedChests.toString()+" "+typeName+"s, and taddle-taled on you for it.");
+										ownerObject.sendMessage(ChatColor.YELLOW+player.getName()+" unlocked "+unlockedChests.toString()+" of your "+typeName+"s using mystic powers!");
 									}
 								}
 								else {
-									player.sendMessage(ChatColor.RED+"Error while unlocking "+owner+"'s "+typename);
+									player.sendMessage(ChatColor.RED+"Error while unlocking "+owner+"'s "+typeName);
 								}
 								
 							}
@@ -116,15 +142,50 @@ public class SimpleChestLockPlayerListener extends PlayerListener {
 								!(plugin.usePermissionsWhitelist)
 								|| ( plugin.usePermissionsWhitelist && plugin.permit(player, new String[]{"simplechestlock.lock.*","simplechestlock.lock."+block.getType().toString()}))
 							){
-								Integer chestsLocked = plugin.chests.lock(player, block);
-								if (chestsLocked == 1){
-									player.sendMessage(ChatColor.GREEN+ucfirst(typename)+" locked!");
+								if (tool.getType().equals(plugin.comboKey)){
+									if (plugin.permit(player, "simplechestlock.usecombo")){
+										Inventory inv = player.getInventory();
+										if (
+												inv.getItem(0).getType().equals(Material.WOOL)
+												&& inv.getItem(1).getType().equals(Material.WOOL)
+												&& inv.getItem(2).getType().equals(Material.WOOL)
+										){
+											DyeColor tumbler1 = DyeColor.getByData(inv.getItem(0).getData().getData());
+											DyeColor tumbler2 = DyeColor.getByData(inv.getItem(1).getData().getData());
+											DyeColor tumbler3 = DyeColor.getByData(inv.getItem(2).getData().getData());
+											DyeColor[] combo = {tumbler1,tumbler2,tumbler3};
+											String comboString = tumbler1.toString()+","+tumbler2.toString()+","+tumbler3.toString();
+											Integer itemsLocked = plugin.chests.lock(player,block,combo);
+											if (itemsLocked == 1){
+												player.sendMessage(ChatColor.GREEN+ucfirst(typeName)+" locked!  Combo is "+comboString);
+											}
+											else if (itemsLocked > 1){
+												player.sendMessage(ChatColor.GREEN+itemsLocked.toString()+" "+typeName+"s locked!  Combo is "+comboString);
+											}
+											else{
+												player.sendMessage(ChatColor.RED+"Error encountered while locking this "+typeName);
+											}
+											
+										}
+										else {
+											player.sendMessage(ChatColor.RED+"First three hotbar slots must be wool for the combo!");
+										}
+									}
+									else {
+										player.sendMessage(ChatColor.RED+"Sorry, permission denied for combination locking!");
+									}
 								}
-								else if (chestsLocked > 1){
-									player.sendMessage(ChatColor.GREEN+chestsLocked.toString()+" "+typename+"s locked!");
-								}
-								else{
-									player.sendMessage(ChatColor.RED+"Error encountered while locking this "+typename);
+								else {
+									Integer chestsLocked = plugin.chests.lock(player, block);
+									if (chestsLocked == 1){
+										player.sendMessage(ChatColor.GREEN+ucfirst(typeName)+" locked!");
+									}
+									else if (chestsLocked > 1){
+										player.sendMessage(ChatColor.GREEN+chestsLocked.toString()+" "+typeName+"s locked!");
+									}
+									else{
+										player.sendMessage(ChatColor.RED+"Error encountered while locking this "+typeName);
+									}
 								}
 							}
 							else if (plugin.usePermissionsWhitelist){

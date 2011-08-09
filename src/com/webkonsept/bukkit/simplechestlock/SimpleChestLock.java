@@ -31,6 +31,7 @@ public class SimpleChestLock extends JavaPlugin {
 	protected boolean verbose = false;
 	protected boolean lockpair = true;
 	protected Material key = Material.STICK;
+	protected Material comboKey = Material.BONE;
 	protected boolean openMessage = true;
 	protected boolean usePermissionsWhitelist = false;
 	
@@ -202,20 +203,27 @@ public class SimpleChestLock extends JavaPlugin {
 		}
 	}
 	public void loadConfig() {
-		File configFile = new File(this.getDataFolder().toString()+"/settings.yml");
+		File configFile = new File(this.getDataFolder(),"settings.yml");
 		File configDir = this.getDataFolder();
 		Configuration config = new Configuration(configFile);
 		
 		config.load();
 		verbose = config.getBoolean("verbose", false);
 		Integer keyInt = config.getInt("key",280); // Stick
+		Integer comboKeyInt = config.getInt("comboKey",352); // Bone
+		
 		lockpair = config.getBoolean("lockpair", true);
 		usePermissionsWhitelist = config.getBoolean("usePermissionsWhitelist",false);
 		openMessage = config.getBoolean("openMessage", true);
 		key = Material.getMaterial(keyInt);
+		comboKey = Material.getMaterial(comboKeyInt);
 		if (key == null){
 			key = Material.STICK;
-			this.crap("OY!  Material ID "+keyInt+" is not a real material.  Falling back to STICK (ID 280)");
+			this.crap("OY!  Material ID "+keyInt+" is not a real material.  Falling back to using STICK (ID 280) for the key.");
+		}
+		if (comboKey == null){
+			comboKey = Material.BONE;
+			this.crap("OY!  Materail ID "+comboKeyInt+" is not a real material. Falling back to using BONE (ID 352) for the combo key.");
 		}
 		if (!configFile.exists()){
 			if (!configDir.exists()){

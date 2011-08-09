@@ -7,78 +7,50 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import org.bukkit.DyeColor;
 import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 
 public class SimpleChestLockList implements Runnable {
 	SimpleChestLock plugin;
-	HashMap<Location,String> list = new HashMap<Location,String>();
+	HashMap<Location,SimpleChestLockItem> list = new HashMap<Location,SimpleChestLockItem>();
+	int key = 0;
 	
 	public SimpleChestLockList(SimpleChestLock instance) {
 		plugin = instance;
 	}
 	public void load (String filename) {
-		File chestFile = new File (plugin.getDataFolder().toString()+"/"+filename);
-		plugin.babble("Reading chests from "+plugin.getDataFolder().getName()+"/"+filename);
+		File chestFile = new File (plugin.getDataFolder(),filename);
+		plugin.babble("Reading chests from "+chestFile.getAbsolutePath());
 		list.clear();
 		if (!chestFile.exists()){
 			plugin.getDataFolder().mkdir();
 			try {
-				plugin.babble("Attempting to create "+chestFile.getName());
+				plugin.babble("Attempting to create"+chestFile.getAbsolutePath());
 				chestFile.createNewFile();
-				plugin.babble("Attempting to create"+plugin.getDataFolder().getName()+"/"+filename);
 			} catch (IOException e) {
 				e.printStackTrace();
 				plugin.crap("FAILED TO CREATE CHESTFILE ("+filename+"): "+e.getMessage());
 			}
 		}
 		
+		int lineNumber = 0;
 		try {
 			BufferedReader in = new BufferedReader(new FileReader(chestFile));
 			String line = "";
+			
 			while (line != null){
 				line = in.readLine();
-				if (line != null){
-					String[] elements = line.split(",", 5);
-					String playerName = elements[0];
-					World world = plugin.server.getWorld(elements[1]);
-					Double X = null;
-					Double Y = null;
-					Double Z = null;
-					
-					try {
-						X = Double.parseDouble(elements[2]);
-						Y = Double.parseDouble(elements[3]);
-						Z = Double.parseDouble(elements[4]);
-					}
-					catch(NumberFormatException e){
-						e.printStackTrace();
-						plugin.crap("I got an unparsable number from the chest file: "+e.getMessage());
-					}
-					
-					if (world != null && X != null && Y != null && Z != null){
-						Location location = new Location(world,X,Y,Z);
-						if ( ! list.containsKey(location)){
-							Material type = location.getBlock().getType();
-							if(plugin.lockable.containsKey(type)){
-								plugin.babble("Added location to protection list: Player("+playerName+") World("+world+") X("+X+") Y("+Y+") Z("+Z+")");
-								list.put(location, playerName);
-							}
-							else {
-								plugin.crap(type.toString()+" not a lockable block at World("+world+") X("+X+") Y("+Y+") Z("+Z+")! "+playerName+"'s block was moved, or severe configuration change?");
-							}
-						}
-					}
-					else {
-						plugin.crap("Error in chestfile:  Player("+playerName+") World("+world+") X("+X+") Y("+Y+") Z("+Z+")");
-					}
+				lineNumber++;
+				if (line != null && !line.matches("^\\s*#")){
+					SimpleChestLockItem item = new SimpleChestLockItem(plugin,line);
+					list.put(item.getLocation(),item);
 				}
 				else {
 					plugin.babble("Done reading protected locations!");
@@ -91,14 +63,15 @@ public class SimpleChestLockList implements Runnable {
 		} catch (IOException e) {
 			e.printStackTrace();
 			plugin.crap("Okay, crap, IOException while reading "+filename+": "+e.getMessage());
+		} catch (ParseException e) {
+			plugin.crap("Failed to parse line "+lineNumber+" from chest file: "+e.getMessage());
 		}
 	}
 	public void save(String filename) {
-		File chestFile = new File (plugin.getDataFolder().toString()+"/"+filename);
+		File chestFile = new File (plugin.getDataFolder(),filename);
 		if (!chestFile.exists()){
-			plugin.out("Attempting to create "+chestFile.getName());
 			plugin.getDataFolder().mkdir();
-			plugin.out("Attempting to create "+plugin.getDataFolder().getName()+"/"+filename);
+			plugin.out("Attempting to create "+chestFile.getAbsolutePath());
 			try {
 				chestFile.createNewFile();
 			} catch (IOException e) {
@@ -109,9 +82,8 @@ public class SimpleChestLockList implements Runnable {
 		
 		try {
 			BufferedWriter out = new BufferedWriter(new FileWriter(chestFile));
-			for (Location location : list.keySet()){
-				String playerName = list.get(location);
-				out.write(playerName+","+location.getWorld().getName()+","+location.getX()+","+location.getY()+","+location.getZ());
+			for (SimpleChestLockItem item : list.values()){
+				out.write(item.toString());
 				out.newLine();
 			}
 			out.flush();
@@ -127,7 +99,7 @@ public class SimpleChestLockList implements Runnable {
 	public String getOwner(Block block){
 		if (block == null) return null;
 		if (list.containsKey(block.getLocation())){
-			return list.get(block.getLocation());
+			return list.get(block.getLocation()).getOwner();
 		}
 		else {
 			return null;
@@ -143,18 +115,43 @@ public class SimpleChestLockList implements Runnable {
 			return false;
 		}
 	}
+	public boolean isComboLocked(Block block){
+		if (isLocked(block)){
+			return list.get(block.getLocation()).isComboLocked();
+		}
+		else {
+			return false;
+		}
+	}
 	public Integer lock(Player player,Block block){
 		if (player == null || block == null || list == null) return 0;
 		if (plugin.canLock(block)){
-			Integer lockedChests = 0;
+			int lockedChests = 0;
 			if (plugin.lockpair && plugin.canDoubleLock(block)){
-				lockedChests = this.addNeighboringChests(block,player.getName());
+				lockedChests = this.addNeighboringChests(block,player);
 			}
 			else {
-				list.put(block.getLocation(), player.getName());
+				list.put(block.getLocation(),new SimpleChestLockItem(player,block));
 				lockedChests = 1;
 			}
 			return lockedChests;
+		}
+		else {
+			return 0;
+		}
+	}
+	public Integer lock(Player player,Block block,DyeColor[] combo){
+		if (player == null || block == null || list == null || combo.length != 3) return 0;
+		if (plugin.canLock(block)){
+			int lockedItems = 0;
+			if (plugin.lockpair && plugin.canDoubleLock(block)){
+				lockedItems = this.addNeighboringChests(block, player,combo);
+			}
+			else {
+				list.put(block.getLocation(),new SimpleChestLockItem(player,block));
+				lockedItems = 1;
+			}
+			return lockedItems;
 		}
 		else {
 			return 0;
@@ -217,11 +214,21 @@ public class SimpleChestLockList implements Runnable {
 		}
 		return additionalChestsUnlocked;
 	}
-	private Integer addNeighboringChests (Block block,String ownerName) {
+	private Integer addNeighboringChests (Block block,Player owner,DyeColor[] combo) {
 		Integer additionalChestsLocked = 0;
 		for (Block currentNeighbour : this.getNeighbours(block)){
 			if (currentNeighbour.getType().equals(block.getType())){
-				list.put(currentNeighbour.getLocation(), ownerName);
+				list.put(currentNeighbour.getLocation(), new SimpleChestLockItem(owner,block,combo));
+				additionalChestsLocked++;
+			}
+		}
+		return additionalChestsLocked;
+	}
+	private Integer addNeighboringChests (Block block,Player owner) {
+		Integer additionalChestsLocked = 0;
+		for (Block currentNeighbour : this.getNeighbours(block)){
+			if (currentNeighbour.getType().equals(block.getType())){
+				list.put(currentNeighbour.getLocation(), new SimpleChestLockItem(owner,block));
 				additionalChestsLocked++;
 			}
 		}
