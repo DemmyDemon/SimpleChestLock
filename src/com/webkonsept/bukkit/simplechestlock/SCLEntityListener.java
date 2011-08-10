@@ -4,10 +4,10 @@ import org.bukkit.block.Block;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityListener;
 
-public class SimpleChestLockEntityListener extends EntityListener {
-	SimpleChestLock plugin;
+public class SCLEntityListener extends EntityListener {
+	SCL plugin;
 	
-	public SimpleChestLockEntityListener(SimpleChestLock instance) {
+	public SCLEntityListener(SCL instance) {
 		plugin = instance;
 	}
 	public void onEntityExplode (EntityExplodeEvent event){

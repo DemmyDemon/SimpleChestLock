@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 
 import org.bukkit.DyeColor;
 import org.bukkit.Location;
@@ -18,12 +17,12 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 
-public class SimpleChestLockList implements Runnable {
-	SimpleChestLock plugin;
-	HashMap<Location,SimpleChestLockItem> list = new HashMap<Location,SimpleChestLockItem>();
+public class SCLList implements Runnable {
+	SCL plugin;
+	HashMap<Location,SCLItem> list = new HashMap<Location,SCLItem>();
 	int key = 0;
 	
-	public SimpleChestLockList(SimpleChestLock instance) {
+	public SCLList(SCL instance) {
 		plugin = instance;
 	}
 	public void load (String filename) {
@@ -50,7 +49,7 @@ public class SimpleChestLockList implements Runnable {
 				line = in.readLine();
 				lineNumber++;
 				if (line != null && !line.matches("^\\s*#")){
-					SimpleChestLockItem item = new SimpleChestLockItem(plugin,line);
+					SCLItem item = new SCLItem(plugin,line);
 					list.put(item.getLocation(),item);
 				}
 				else {
@@ -83,8 +82,10 @@ public class SimpleChestLockList implements Runnable {
 		
 		try {
 			BufferedWriter out = new BufferedWriter(new FileWriter(chestFile));
-			for (SimpleChestLockItem item : list.values()){
-				out.write(item.toString());
+			for (SCLItem item : list.values()){
+				String line = item.toString();
+				plugin.babble("Saved: "+line);
+				out.write(line);
 				out.newLine();
 			}
 			out.flush();
@@ -118,9 +119,26 @@ public class SimpleChestLockList implements Runnable {
 	}
 	public boolean isComboLocked(Block block){
 		if (isLocked(block)){
-			return list.get(block.getLocation()).isComboLocked();
+			plugin.babble("> Locked");
+			 
+			SCLItem item = list.get(block.getLocation());
+			if (item != null){
+				if (item.isComboLocked()){
+					plugin.babble("> Combo");
+					return true;
+				}
+				else {
+					plugin.babble("> Not a combo");
+					return false;
+				}
+			}
+			else {
+				plugin.babble("> Locked item is null?!");
+				return false;
+			}
 		}
 		else {
+			plugin.babble("> Not locked!");
 			return false;
 		}
 	}
@@ -132,7 +150,7 @@ public class SimpleChestLockList implements Runnable {
 				lockedChests = this.addNeighboringChests(block,player);
 			}
 			else {
-				list.put(block.getLocation(),new SimpleChestLockItem(player,block));
+				list.put(block.getLocation(),new SCLItem(player,block));
 				lockedChests = 1;
 			}
 			return lockedChests;
@@ -149,7 +167,7 @@ public class SimpleChestLockList implements Runnable {
 				lockedItems = this.addNeighboringChests(block, player,combo);
 			}
 			else {
-				list.put(block.getLocation(),new SimpleChestLockItem(player,block));
+				list.put(block.getLocation(),new SCLItem(player,block,combo));
 				lockedItems = 1;
 			}
 			return lockedItems;
@@ -160,7 +178,7 @@ public class SimpleChestLockList implements Runnable {
 	}
 	public String getComboString(Block block) {
 		if (list.containsKey(block.getLocation())){
-			SimpleChestLockItem item = list.get(block.getLocation());
+			SCLItem item = list.get(block.getLocation());
 			return item.getComboString();
 		}
 		else {
@@ -228,7 +246,7 @@ public class SimpleChestLockList implements Runnable {
 		Integer additionalChestsLocked = 0;
 		for (Block currentNeighbour : this.getNeighbours(block)){
 			if (currentNeighbour.getType().equals(block.getType())){
-				list.put(currentNeighbour.getLocation(), new SimpleChestLockItem(owner,block,combo));
+				list.put(currentNeighbour.getLocation(), new SCLItem(owner,block,combo));
 				additionalChestsLocked++;
 			}
 		}
@@ -238,7 +256,7 @@ public class SimpleChestLockList implements Runnable {
 		Integer additionalChestsLocked = 0;
 		for (Block currentNeighbour : this.getNeighbours(block)){
 			if (currentNeighbour.getType().equals(block.getType())){
-				list.put(currentNeighbour.getLocation(), new SimpleChestLockItem(owner,block));
+				list.put(currentNeighbour.getLocation(), new SCLItem(owner,block));
 				additionalChestsLocked++;
 			}
 		}

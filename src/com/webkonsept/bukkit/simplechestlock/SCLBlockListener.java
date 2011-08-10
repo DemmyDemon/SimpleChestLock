@@ -9,10 +9,10 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockListener;
 import org.bukkit.event.block.BlockPlaceEvent;
 
-public class SimpleChestLockBlockListener extends BlockListener {
-	SimpleChestLock plugin;
+public class SCLBlockListener extends BlockListener {
+	SCL plugin;
 	
-	public SimpleChestLockBlockListener(SimpleChestLock instance) {
+	public SCLBlockListener(SCL instance) {
 		plugin = instance;
 	}
 	

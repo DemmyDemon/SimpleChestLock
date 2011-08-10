@@ -11,10 +11,10 @@ import org.bukkit.event.player.PlayerListener;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-public class SimpleChestLockPlayerListener extends PlayerListener {
-	SimpleChestLock plugin;
+public class SCLPlayerListener extends PlayerListener {
+	SCL plugin;
 	
-	public SimpleChestLockPlayerListener(SimpleChestLock instance) {
+	public SCLPlayerListener(SCL instance) {
 		plugin = instance;
 	}
 	private String ucfirst(String string){
@@ -49,6 +49,12 @@ public class SimpleChestLockPlayerListener extends PlayerListener {
 					plugin.babble(player.getName()+" wants to use "+owner+"'s "+typeName);
 					boolean ignoreOwner = plugin.permit(player, "simplechestlock.ignoreowner");
 					boolean comboLocked = plugin.chests.isComboLocked(block);
+					if (comboLocked){
+						plugin.babble("This block is locked with a combination lock!");
+					}
+					else {
+						plugin.babble("This block is locked with a normal key");
+					}
 					
 					if ( comboLocked && ! owner.equalsIgnoreCase(player.getName()) && ! ignoreOwner){
 						Inventory inv = player.getInventory();
@@ -61,7 +67,7 @@ public class SimpleChestLockPlayerListener extends PlayerListener {
 							DyeColor tumbler2 = DyeColor.getByData(inv.getItem(1).getData().getData());
 							DyeColor tumbler3 = DyeColor.getByData(inv.getItem(2).getData().getData());
 							DyeColor[] combo = {tumbler1,tumbler2,tumbler3};
-							SimpleChestLockItem item = plugin.chests.list.get(block.getLocation());
+							SCLItem item = plugin.chests.list.get(block.getLocation());
 							if (!item.correctCombo(combo)){
 								plugin.babble(player.getName()+" provided the wrong combo for "+owner+"'s "+typeName);
 								player.sendMessage(ChatColor.RED+owner+"'s "+typeName+" has a different combination...");
@@ -151,7 +157,10 @@ public class SimpleChestLockPlayerListener extends PlayerListener {
 						else {
 							if (
 								!(plugin.usePermissionsWhitelist)
-								|| ( plugin.usePermissionsWhitelist && plugin.permit(player, new String[]{"simplechestlock.lock.*","simplechestlock.lock."+block.getType().toString()}))
+								|| ( 
+										plugin.usePermissionsWhitelist 
+										&& plugin.permit(player, new String[]{"simplechestlock.lock.*","simplechestlock.lock."+block.getType().toString()})
+									)
 							){
 								if (tool.getType().equals(plugin.comboKey)){
 									if (plugin.permit(player, "simplechestlock.usecombo")){

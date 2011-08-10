@@ -24,7 +24,7 @@ import org.bukkit.util.config.Configuration;
 import com.nijiko.permissions.PermissionHandler;
 import com.nijikokun.bukkit.Permissions.Permissions;
 
-public class SimpleChestLock extends JavaPlugin {
+public class SCL extends JavaPlugin {
 	private Logger log = Logger.getLogger("Minecraft");
 	private PermissionHandler Permissions;
 	protected boolean usePermissions;
@@ -43,10 +43,10 @@ public class SimpleChestLock extends JavaPlugin {
 	// Intended to hold the materials of items/blocked that can also be activated by left-click
 	public HashSet<Material> leftLocked = new HashSet<Material>();
 	
-	private SimpleChestLockPlayerListener 	playerListener 	= new SimpleChestLockPlayerListener(this);
-	private SimpleChestLockBlockListener 	blockListener 	= new SimpleChestLockBlockListener(this);
-	private SimpleChestLockEntityListener 	entityListener 	= new SimpleChestLockEntityListener(this);
-	protected SimpleChestLockList			chests			= new SimpleChestLockList(this);
+	private SCLPlayerListener 	playerListener 	= new SCLPlayerListener(this);
+	private SCLBlockListener 	blockListener 	= new SCLBlockListener(this);
+	private SCLEntityListener 	entityListener 	= new SCLEntityListener(this);
+	protected SCLList			chests			= new SCLList(this);
 	
 	@Override
 	public void onDisable() {
@@ -75,28 +75,80 @@ public class SimpleChestLock extends JavaPlugin {
 		
 		if ( ! this.isEnabled() ) return false;
 		
-		boolean success = true;
-		boolean player = false;
+		boolean success = false;
+		boolean isPlayer = false;
+		Player player = null;
+		
 		if (sender instanceof Player){
-			player = true;
+			isPlayer = true;
+			player = (Player)sender;
 		}
 
-		if (command.getName().equalsIgnoreCase("sclreload")){
-			if ( !player  || this.permit((Player)sender, "simplechestlock.reload")){
-				this.loadConfig();
-				chests.load("Chests.txt");
-				sender.sendMessage("Successfully reloaded configuration and chest list");
+		if (command.getName().equalsIgnoreCase("scl")){
+			if (args.length == 0){
+				success = false;  // Automagically prints the usage.
 			}
-			else {
-				sender.sendMessage(ChatColor.RED+"[SimpleChestLock] Sorry, permission denied!");
-				success = false;
+			else if (args.length >= 1){
+				if (args[0].equalsIgnoreCase("reload")){
+					success = true;  // This is a valid command.
+					if ( !isPlayer  || this.permit(player, "simplechestlock.command.reload")){
+						this.loadConfig();
+						String saveFile = "Chests.txt";
+						if (args.length == 2){
+							saveFile = args[1];
+						}
+						chests.load(saveFile);
+						sender.sendMessage(ChatColor.GREEN+"Successfully reloaded configuration and locks from "+saveFile);
+						
+					}
+					else {
+						sender.sendMessage(ChatColor.RED+"[SimpleChestLock] Sorry, permission denied!");
+					}
+				}
+				else if (args[0].equalsIgnoreCase("save")){
+					success = true;
+					if (!isPlayer || this.permit(player,"simplechestlock.command.save")){
+						String saveFile = "Chests.txt";
+						if (args.length == 2){
+							saveFile = args[1];
+						}
+						chests.save(saveFile);
+						sender.sendMessage(ChatColor.GREEN+"Saved locks to "+saveFile);
+					}
+					else {
+						sender.sendMessage(ChatColor.RED+"[SimpleChestLock] Sorry, permission denied!");
+					}
+				}
+				else if (args[0].equalsIgnoreCase("status")){
+					success = true;
+					if (!isPlayer || this.permit(player,"simplechestlock.command.status")){
+						HashMap<String,Integer> ownership = new HashMap<String,Integer>();
+						int total = 0;
+						for (SCLItem item : chests.list.values()){
+							Integer owned = ownership.get(item.getOwner());
+							total++;
+							if (owned == null){
+								ownership.put(item.getOwner(),1);
+							}
+							else {
+								ownership.put(item.getOwner(),++owned);
+							}
+						}
+						
+						for (String playerName : ownership.keySet()){
+							Integer owned = ownership.get(playerName);
+							if (owned == null){
+								owned = 0;
+							}
+							sender.sendMessage(playerName+": "+owned);
+						}
+						sender.sendMessage("Total: "+total);
+					}
+				}
 			}
 		}
-		else if (command.getName().equalsIgnoreCase("sclsave")){
-			if (!player || this.permit((Player)sender, "simplechestlock.save")){
-				chests.save("Chests.txt");
-				sender.sendMessage("Successfully saved the chests file");
-			}
+		else {
+			sender.sendMessage(ChatColor.RED+"Command is deprecated, try /scl");
 		}
 		return success;
 	}

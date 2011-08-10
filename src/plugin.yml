@@ -1,5 +1,5 @@
 name: SimpleChestLock
-main: com.webkonsept.bukkit.simplechestlock.SimpleChestLock
+main: com.webkonsept.bukkit.simplechestlock.SCL
 version: 0.11
 branch: stable
 thread: http://forums.bukkit.org/threads/SimpleChestLock.17557/
@@ -8,11 +8,14 @@ location: http://minecraft.webkonsept.com/plugins/download/SimpleChestLock.jar
 database: false
 commands:
     sclreload: 
-        description: Reloads the ChestLock settings file and locked items list
-        usage: /<command> (takes no arguments)
+        description: DEPRECATED
+        usage: Deprecated.  Use /scl reload
     sclsave:
-        description: Saves the chests file
-        usage: /<command> (takes no arguments)
+        description: DEPRECATED!
+        usage: Deprecated.  Use /scl save
+    scl:
+        description:  Interact with SimpleChestLock
+        usage: /<command> [save|reload|status]
 generators: [bukget]
 categories: [ SEC, MECH ]
 description: Gives players the ability to lock chests and other blocks.
@@ -35,11 +38,15 @@ permissions:
         children:
             simplechestlock.command.reload: true
             simplechestlock.command.save: true
+            simplechestlock.command.status: true
     simplechestlock.command.reload:
-        description: Access to /sclreload
+        description: Access to /scl reload
         default: op
     simplechestlock.command.save:
-        description: Access to /sclsave
+        description: Access to /scl save
+        default: op
+    simplechestlock.command.status:
+        description: Access to /scl status
         default: op
     simplechestlock.ignoreowner:
         description: Unlock any item, use any item.

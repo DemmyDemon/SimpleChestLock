@@ -9,7 +9,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
-public class SimpleChestLockItem {
+public class SCLItem {
 
 	private Location location;
 	private String owner;
@@ -19,7 +19,7 @@ public class SimpleChestLockItem {
 	
 	private int correctLength = 9;
 	
-	SimpleChestLockItem (SimpleChestLock plugin,String line) throws ParseException {
+	SCLItem (SCL plugin,String line) throws ParseException {
 		String[] elements = line.split(split,9);
 		String playerName = elements[0];
 		World world = plugin.server.getWorld(elements[1]);
@@ -78,11 +78,11 @@ public class SimpleChestLockItem {
 			throw new ParseException("Unknown error in chestfile:  Player("+playerName+") World("+world+") X("+X+") Y("+Y+") Z("+Z+")",0);
 		}
 	}
-	SimpleChestLockItem (Player player, Block block){
+	SCLItem (Player player, Block block){
 		location = block.getLocation();
 		owner = player.getName();
 	}
-	SimpleChestLockItem (Player player, Block block, DyeColor[] comboArray){
+	SCLItem (Player player, Block block, DyeColor[] comboArray){
 		location = block.getLocation();
 		owner = player.getName();
 		if (comboArray.length == combo.length){
@@ -94,11 +94,9 @@ public class SimpleChestLockItem {
 		// old version: PlayerName,world,x,y,z
 		// new version: PlayerName,world,x,y,z,comboLocked?,tumbler1,tumbler2,tumbler3
 		if (location == null){
-			System.out.println("CRAP!  Location is null!");
 			return "# ERROR READING LOCATION:  CANNOT WRITE BACK!";
 		}
 		else if (location.getWorld() == null){
-			System.out.println("CRAP!  Location not in a world?!?");
 			return "# ERROR READING WORLD: CANNOT WRITE BACK!";
 		}
 		StringBuilder sb = new StringBuilder();
