@@ -96,7 +96,8 @@ public class SCLPlayerListener extends PlayerListener {
 						if (plugin.openMessage){
 							if (comboLocked){
 								String comboString = plugin.chests.getComboString(block);
-								player.sendMessage(ChatColor.GREEN+"Access granted to "+typeName+", lock combination is "+comboString);
+								//player.sendMessage(ChatColor.GREEN+"Access granted to "+typeName);
+								player.sendMessage(ChatColor.GREEN+"Lock combination is "+comboString);
 							}
 							else {
 								player.sendMessage(ChatColor.GREEN+"Access granted to "+typeName);
