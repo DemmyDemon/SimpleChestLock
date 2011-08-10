@@ -48,8 +48,9 @@ public class SimpleChestLockPlayerListener extends PlayerListener {
 					String owner = plugin.chests.getOwner(block);
 					plugin.babble(player.getName()+" wants to use "+owner+"'s "+typeName);
 					boolean ignoreOwner = plugin.permit(player, "simplechestlock.ignoreowner");
+					boolean comboLocked = plugin.chests.isComboLocked(block);
 					
-					if (plugin.chests.isComboLocked(block) && ! owner.equalsIgnoreCase(player.getName()) && ! ignoreOwner){
+					if ( comboLocked && ! owner.equalsIgnoreCase(player.getName()) && ! ignoreOwner){
 						Inventory inv = player.getInventory();
 						if (
 								inv.getItem(0).getType().equals(Material.WOOL)
@@ -62,11 +63,13 @@ public class SimpleChestLockPlayerListener extends PlayerListener {
 							DyeColor[] combo = {tumbler1,tumbler2,tumbler3};
 							SimpleChestLockItem item = plugin.chests.list.get(block.getLocation());
 							if (!item.correctCombo(combo)){
+								plugin.babble(player.getName()+" provided the wrong combo for "+owner+"'s "+typeName);
 								player.sendMessage(ChatColor.RED+owner+"'s "+typeName+" has a different combination...");
 								event.setCancelled(true);
 							}
 						}
 						else {
+							plugin.babble(player.getName()+" provided no combo for "+owner+"'s "+typeName);
 							player.sendMessage(ChatColor.RED+owner+"'s "+typeName+" is locked with a combination lock.");
 							event.setCancelled(true);
 						}
@@ -77,13 +80,21 @@ public class SimpleChestLockPlayerListener extends PlayerListener {
 					}
 
 					else if (! owner.equalsIgnoreCase(player.getName()) && ignoreOwner){
+						plugin.babble(player.getName()+" was let into "+owner+"'s "+typeName+", ignoring owner.");
 						if (plugin.openMessage){
 							player.sendMessage(ChatColor.GREEN+"Access granted to "+owner+"'s "+typeName);
 						}
 					}
 					else {
+						plugin.babble(player.getName()+" was let into the "+typeName);
 						if (plugin.openMessage){
-							player.sendMessage(ChatColor.GREEN+"Access granted to "+typeName);
+							if (comboLocked){
+								String comboString = plugin.chests.getComboString(block);
+								player.sendMessage(ChatColor.GREEN+"Access granted to "+typeName+", lock combination is "+comboString);
+							}
+							else {
+								player.sendMessage(ChatColor.GREEN+"Access granted to "+typeName);
+							}
 						}
 					}
 				}

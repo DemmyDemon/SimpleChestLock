@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 
 import org.bukkit.DyeColor;
 import org.bukkit.Location;
@@ -155,6 +156,15 @@ public class SimpleChestLockList implements Runnable {
 		}
 		else {
 			return 0;
+		}
+	}
+	public String getComboString(Block block) {
+		if (list.containsKey(block.getLocation())){
+			SimpleChestLockItem item = list.get(block.getLocation());
+			return item.getComboString();
+		}
+		else {
+			return " ..NOT LOCKED.. ";
 		}
 	}
 	public Integer unlock(Block block){

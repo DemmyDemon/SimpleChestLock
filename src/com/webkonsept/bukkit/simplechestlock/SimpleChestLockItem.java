@@ -135,6 +135,9 @@ public class SimpleChestLockItem {
 	public DyeColor[] getCombo(){
 		return combo;
 	}
+	public String getComboString(){
+		return combo[0].toString()+", "+combo[1].toString()+", "+combo[2].toString();
+	}
 	public void setCombo(DyeColor[] comboArray){
 		if(comboArray.length > combo.length){
 			for (int i = 0; i < combo.length; i++){
