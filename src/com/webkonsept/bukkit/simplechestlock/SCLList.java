@@ -26,31 +26,35 @@ public class SCLList implements Runnable {
 		plugin = instance;
 	}
 	public void load (String filename) {
-		File chestFile = new File (plugin.getDataFolder(),filename);
-		plugin.babble("Reading chests from "+chestFile.getAbsolutePath());
+		File lockedItemFile = new File (plugin.getDataFolder(),filename);
+		plugin.babble("Reading locks from "+lockedItemFile.getAbsolutePath());
 		list.clear();
-		if (!chestFile.exists()){
+		if (!lockedItemFile.exists()){
 			plugin.getDataFolder().mkdir();
 			try {
-				plugin.babble("Attempting to create"+chestFile.getAbsolutePath());
-				chestFile.createNewFile();
+				plugin.babble("Attempting to create "+lockedItemFile.getAbsolutePath());
+				lockedItemFile.createNewFile();
 			} catch (IOException e) {
 				e.printStackTrace();
-				plugin.crap("FAILED TO CREATE CHESTFILE ("+filename+"): "+e.getMessage());
+				plugin.crap("FAILED TO CREATE FILE FOR LOCKS ("+filename+"): "+e.getMessage());
 			}
 		}
 		
 		int lineNumber = 0;
 		try {
-			BufferedReader in = new BufferedReader(new FileReader(chestFile));
+			BufferedReader in = new BufferedReader(new FileReader(lockedItemFile));
 			String line = "";
 			
 			while (line != null){
 				line = in.readLine();
 				lineNumber++;
 				if (line != null && !line.matches("^\\s*#")){
-					SCLItem item = new SCLItem(plugin,line);
-					list.put(item.getLocation(),item);
+					try {
+						SCLItem item = new SCLItem(plugin,line);
+						list.put(item.getLocation(),item);
+					} catch(ParseException e){
+						plugin.crap("Failed to parse line "+lineNumber+" from locks file: "+e.getMessage());
+					}
 				}
 				else {
 					plugin.babble("Done reading protected locations!");
@@ -63,25 +67,23 @@ public class SCLList implements Runnable {
 		} catch (IOException e) {
 			e.printStackTrace();
 			plugin.crap("Okay, crap, IOException while reading "+filename+": "+e.getMessage());
-		} catch (ParseException e) {
-			plugin.crap("Failed to parse line "+lineNumber+" from chest file: "+e.getMessage());
 		}
 	}
 	public void save(String filename) {
-		File chestFile = new File (plugin.getDataFolder(),filename);
-		if (!chestFile.exists()){
+		File lockedItemsFile = new File (plugin.getDataFolder(),filename);
+		if (!lockedItemsFile.exists()){
 			plugin.getDataFolder().mkdir();
-			plugin.out("Attempting to create "+chestFile.getAbsolutePath());
+			plugin.out("Attempting to create "+lockedItemsFile.getAbsolutePath());
 			try {
-				chestFile.createNewFile();
+				lockedItemsFile.createNewFile();
 			} catch (IOException e) {
-				plugin.crap("FAILED TO CREATE CHESTFILE");
+				plugin.crap("FAILED TO CREATE FILE FOR LOCKS CALLED "+filename);
 				e.printStackTrace();
 			}
 		}
 		
 		try {
-			BufferedWriter out = new BufferedWriter(new FileWriter(chestFile));
+			BufferedWriter out = new BufferedWriter(new FileWriter(lockedItemsFile));
 			for (SCLItem item : list.values()){
 				String line = item.toString();
 				plugin.babble("Saved: "+line);
@@ -145,15 +147,15 @@ public class SCLList implements Runnable {
 	public Integer lock(Player player,Block block){
 		if (player == null || block == null || list == null) return 0;
 		if (plugin.canLock(block)){
-			int lockedChests = 0;
+			int lockedItems = 0;
 			if (plugin.lockpair && plugin.canDoubleLock(block)){
-				lockedChests = this.addNeighboringChests(block,player);
+				lockedItems = this.addNeighboring(block,player);
 			}
 			else {
 				list.put(block.getLocation(),new SCLItem(player,block));
-				lockedChests = 1;
+				lockedItems = 1;
 			}
-			return lockedChests;
+			return lockedItems;
 		}
 		else {
 			return 0;
@@ -164,7 +166,7 @@ public class SCLList implements Runnable {
 		if (plugin.canLock(block)){
 			int lockedItems = 0;
 			if (plugin.lockpair && plugin.canDoubleLock(block)){
-				lockedItems = this.addNeighboringChests(block, player,combo);
+				lockedItems = this.addNeighboring(block, player,combo);
 			}
 			else {
 				list.put(block.getLocation(),new SCLItem(player,block,combo));
@@ -190,15 +192,15 @@ public class SCLList implements Runnable {
 		if (this.isLocked(block)){
 			if (list != null){
 				
-				Integer unlockedChests = 0;
+				Integer unlockedItems = 0;
 				if (plugin.lockpair && plugin.canDoubleLock(block)){
-					unlockedChests = this.removeNeighboringChests(block);
+					unlockedItems = this.removeNeighboring(block);
 				}
 				else {
 					list.remove(block.getLocation());
-					unlockedChests = 1;
+					unlockedItems = 1;
 				}
-				return unlockedChests;
+				return unlockedItems;
 			}
 			else {
 				return 0;
@@ -214,53 +216,66 @@ public class SCLList implements Runnable {
 		neighbours.add(block.getRelative(BlockFace.EAST));
 		neighbours.add(block.getRelative(BlockFace.WEST));
 		// For doors
-		neighbours.add(block.getRelative(BlockFace.UP));
-		neighbours.add(block.getRelative(BlockFace.DOWN));
+		//neighbours.add(block.getRelative(BlockFace.UP));
+		//neighbours.add(block.getRelative(BlockFace.DOWN));
 		
 		
 		HashSet<Block> additionalNeighbours = new HashSet<Block>();
 		for (Block neighbour : neighbours){
-			additionalNeighbours.add(neighbour.getRelative(BlockFace.UP));
-			additionalNeighbours.add(neighbour.getRelative(BlockFace.DOWN));
+			Block above = neighbour.getRelative(BlockFace.UP);
+			additionalNeighbours.add(above);
+			
+			Block below = neighbour.getRelative(BlockFace.DOWN);
+			additionalNeighbours.add(below);
+			
 		}
 		neighbours.addAll(additionalNeighbours);
 		
 		
 		return neighbours;
 	}
-	private Integer removeNeighboringChests (Block block) {
+	private Integer removeNeighboring (Block block) {
 		String playerName = getOwner(block);
-		Integer additionalChestsUnlocked = 0;
+		Integer additionalUnlocked = 0;
 		for (Block currentNeighbour : this.getNeighbours(block)){
 			if (currentNeighbour.getType().equals(block.getType())){
 				String owner = this.getOwner(currentNeighbour);
 				if (owner != null && owner.equals(playerName)){
 					list.remove(currentNeighbour.getLocation());
-					additionalChestsUnlocked++;
+					additionalUnlocked++;
 				}
 			}
 		}
-		return additionalChestsUnlocked;
+		return additionalUnlocked;
 	}
-	private Integer addNeighboringChests (Block block,Player owner,DyeColor[] combo) {
-		Integer additionalChestsLocked = 0;
+	private Integer addNeighboring (Block block,Player owner,DyeColor[] combo) {
+		Integer additionalItemsLocked = 0;
 		for (Block currentNeighbour : this.getNeighbours(block)){
 			if (currentNeighbour.getType().equals(block.getType())){
 				list.put(currentNeighbour.getLocation(), new SCLItem(owner,block,combo));
-				additionalChestsLocked++;
+				additionalItemsLocked++;
 			}
 		}
-		return additionalChestsLocked;
+		return additionalItemsLocked;
 	}
-	private Integer addNeighboringChests (Block block,Player owner) {
-		Integer additionalChestsLocked = 0;
+	private Integer addNeighboring (Block block,Player owner) {
+		Integer additionalItemsLocked = 0;
 		for (Block currentNeighbour : this.getNeighbours(block)){
 			if (currentNeighbour.getType().equals(block.getType())){
-				list.put(currentNeighbour.getLocation(), new SCLItem(owner,block));
-				additionalChestsLocked++;
+				if (list.containsKey(currentNeighbour.getLocation())){
+					plugin.babble("Uhm, this "+currentNeighbour.getType().toString().toLowerCase()+" is already locked.");
+				}
+				else {
+					plugin.babble("Locking "+currentNeighbour.getType().toString().toLowerCase());
+					list.put(currentNeighbour.getLocation(), new SCLItem(owner,block));
+					additionalItemsLocked++;
+				}
+			}
+			else {
+				plugin.babble("Not locking "+currentNeighbour.getType().toString().toLowerCase()+"!  Current type is "+block.getType().toString().toLowerCase());
 			}
 		}
-		return additionalChestsLocked;
+		return additionalItemsLocked;
 	}
 	@Override
 	public void run() { // So saving to the default filename is easily scheduled
