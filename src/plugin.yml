@@ -1,6 +1,6 @@
 name: SimpleChestLock
 main: com.webkonsept.bukkit.simplechestlock.SCL
-version: 0.11.2
+version: 0.11.3
 branch: stable
 thread: http://forums.bukkit.org/threads/SimpleChestLock.17557/
 website: http://minecraft.webkonsept.com/plugins/details/SimpleChestLock.html
@@ -33,6 +33,7 @@ permissions:
             simplechestlock.command.reload: true
             simplechestlock.command.save: true
             simplechestlock.command.status: true
+            simplechestlock.command.list: true
     simplechestlock.command.reload:
         description: Access to /scl reload
         default: op
@@ -41,6 +42,9 @@ permissions:
         default: op
     simplechestlock.command.status:
         description: Access to /scl status
+        default: op
+    simplechestlock.command.list:
+        description: Access to /scl list
         default: op
     simplechestlock.ignoreowner:
         description: Unlock any item, use any item.

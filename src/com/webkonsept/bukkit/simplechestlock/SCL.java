@@ -145,6 +145,14 @@ public class SCL extends JavaPlugin {
 						sender.sendMessage("Total: "+total);
 					}
 				}
+				else if (args[0].equalsIgnoreCase("list")){
+					success = true;
+					if (!isPlayer || this.permit(player, "simplechestlock.command.list")){
+						for (SCLItem item : chests.list.values()){
+							sender.sendMessage(item.getLocation().toString());
+						}
+					}
+				}
 			}
 		}
 		else {

@@ -250,9 +250,10 @@ public class SCLList implements Runnable {
 	}
 	private Integer addNeighboring (Block block,Player owner,DyeColor[] combo) {
 		Integer additionalItemsLocked = 0;
+		
 		for (Block currentNeighbour : this.getNeighbours(block)){
 			if (currentNeighbour.getType().equals(block.getType())){
-				list.put(currentNeighbour.getLocation(), new SCLItem(owner,block,combo));
+				list.put(currentNeighbour.getLocation(), new SCLItem(owner,currentNeighbour,combo));
 				additionalItemsLocked++;
 			}
 		}
@@ -260,14 +261,15 @@ public class SCLList implements Runnable {
 	}
 	private Integer addNeighboring (Block block,Player owner) {
 		Integer additionalItemsLocked = 0;
+		plugin.out(block.getLocation().toString());
 		for (Block currentNeighbour : this.getNeighbours(block)){
 			if (currentNeighbour.getType().equals(block.getType())){
 				if (list.containsKey(currentNeighbour.getLocation())){
 					plugin.babble("Uhm, this "+currentNeighbour.getType().toString().toLowerCase()+" is already locked.");
 				}
 				else {
-					plugin.babble("Locking "+currentNeighbour.getType().toString().toLowerCase());
-					list.put(currentNeighbour.getLocation(), new SCLItem(owner,block));
+					plugin.babble("Locking "+currentNeighbour.getType().toString().toLowerCase()+" at "+currentNeighbour.getLocation().toString());
+					list.put(currentNeighbour.getLocation(), new SCLItem(owner,currentNeighbour));
 					additionalItemsLocked++;
 				}
 			}
