@@ -63,7 +63,7 @@ permissions:
         default: false
 engines:
     craftbukkit:
-        min: 1499
-        max: 1499
+        min: 1597
+        max: 1597
 
 
