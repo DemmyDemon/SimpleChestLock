@@ -1,6 +1,7 @@
 package com.webkonsept.bukkit.simplechestlock;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,28 +13,25 @@ import org.bukkit.Server;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.Event.Priority;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.util.config.Configuration;
-
-import com.nijiko.permissions.PermissionHandler;
-import com.nijikokun.bukkit.Permissions.Permissions;
 
 public class SCL extends JavaPlugin {
 	private Logger log = Logger.getLogger("Minecraft");
-	private PermissionHandler Permissions;
-	protected boolean usePermissions;
 	protected boolean verbose = false;
 	protected boolean lockpair = true;
 	protected Material key = Material.STICK;
 	protected Material comboKey = Material.BONE;
 	protected boolean openMessage = true;
 	protected boolean usePermissionsWhitelist = false;
+	protected boolean lockedChestsSuck = false;
+	protected int suckRange = 3;
 	
 	protected Server server = null;
 	
@@ -42,6 +40,12 @@ public class SCL extends JavaPlugin {
 	
 	// Intended to hold the materials of items/blocked that can also be activated by left-click
 	public HashSet<Material> leftLocked = new HashSet<Material>();
+	
+	// Holding the valid locations for a multi-lockable block
+	public HashSet<Material> lockIncludeVertical = new HashSet<Material>();
+	
+	// Okay for the "sucks items" feature (Item containers only plx!)
+	public HashSet<Material> canSuck = new HashSet<Material>();
 	
 	private SCLPlayerListener 	playerListener 	= new SCLPlayerListener(this);
 	private SCLBlockListener 	blockListener 	= new SCLBlockListener(this);
@@ -59,7 +63,6 @@ public class SCL extends JavaPlugin {
 	public void onEnable() {
 		setupLockables();
 		loadConfig();
-		usePermissions = setupPermissions();
 		server = getServer();
 		chests.load("Chests.txt");
 		PluginManager pm = getServer().getPluginManager();
@@ -67,7 +70,9 @@ public class SCL extends JavaPlugin {
 		pm.registerEvent(Event.Type.BLOCK_BREAK,blockListener, Priority.Normal, this);
 		pm.registerEvent(Event.Type.BLOCK_PLACE,blockListener, Priority.Normal, this);
 		pm.registerEvent(Event.Type.ENTITY_EXPLODE,entityListener,Priority.Normal,this);
-		server.getScheduler().scheduleSyncRepeatingTask(this,chests, 6000, 6000);
+		if (lockedChestsSuck){
+			server.getScheduler().scheduleSyncRepeatingTask(this,chests, 100, 100);
+		}
 		this.out("Enabled!");
 	}
 	
@@ -98,6 +103,10 @@ public class SCL extends JavaPlugin {
 							saveFile = args[1];
 						}
 						chests.load(saveFile);
+						server.getScheduler().cancelTasks(this);
+						if (lockedChestsSuck){
+							server.getScheduler().scheduleSyncRepeatingTask(this,chests, 100, 100);
+						}
 						sender.sendMessage(ChatColor.GREEN+"Successfully reloaded configuration and locks from "+saveFile);
 						
 					}
@@ -167,18 +176,13 @@ public class SCL extends JavaPlugin {
 		String playerName = player.getName();
 		boolean permit = false;
 		for (String permission : permissions){
-			if (usePermissions){
-				permit = Permissions.permission(player, permission);
-			}
-			else {
-				permit = player.hasPermission(permission);
-			}
+			permit = player.hasPermission(permission);
 			if (permit){
-				babble("Permission granted: "+playerName+"->"+permission);
+				babble("Permission granted: "+playerName+"->("+permission+")");
 				break;
 			}
 			else {
-				babble("Permission denied: "+playerName+"->"+permission);
+				babble("Permission denied: "+playerName+"->("+permission+")");
 			}
 		}
 		return permit;
@@ -186,17 +190,6 @@ public class SCL extends JavaPlugin {
 	}
 	public boolean permit(Player player,String permission){
 		return permit(player,new String[]{permission});
-	}
-	private boolean setupPermissions() {
-		boolean crap = false;
-		
-		Plugin test = this.getServer().getPluginManager().getPlugin("Permissions");
-		if (test != null){
-			crap = true;
-			this.Permissions = ((Permissions)test).getHandler();
-		}
-		
-		return crap;
 	}
 	public void out(String message) {
 		PluginDescriptionFile pdfFile = this.getDescription();
@@ -223,29 +216,44 @@ public class SCL extends JavaPlugin {
 		lockable.clear();
 		// DEFAULT VALUES
 		lockable.put(Material.CHEST,true);
+		lockable.put(Material.DISPENSER,false);
+		lockable.put(Material.JUKEBOX,false);
+		lockable.put(Material.ENCHANTMENT_TABLE,false);
+		lockable.put(Material.BREWING_STAND,false);
+		
 		//NOTE:  If double locking is enabled for furnaces, remember that a furnace and a burning furnace are NOT the same material!
 		// That means that double locking, which tests the neighboring blocks for .equals() on the material, won't work if one is burning. 
 		lockable.put(Material.FURNACE,false);
 		lockable.put(Material.BURNING_FURNACE,false);
-		lockable.put(Material.DISPENSER,false);
-		lockable.put(Material.JUKEBOX,false);
 		
 		// Levers, buttons and doors are special:  You can activate them with a left click.
 		// Hence, we have to lock interaction via LMB as well, making them "leftLocked"
-		lockable.put(Material.WOODEN_DOOR, true);
+		
 		lockable.put(Material.LEVER,false);
-		lockable.put(Material.STONE_BUTTON,false);
-		lockable.put(Material.TRAP_DOOR, false);
-		leftLocked.add(Material.STONE_BUTTON);
 		leftLocked.add(Material.LEVER);
-		leftLocked.add(Material.WOODEN_DOOR);
+		lockable.put(Material.STONE_BUTTON,false);
+		leftLocked.add(Material.STONE_BUTTON);
+		lockable.put(Material.TRAP_DOOR, false);
 		leftLocked.add(Material.TRAP_DOOR);
 		
+		// WTH, this doesn't seem to work?!
+		lockable.put(Material.FENCE_GATE, false);
+		leftLocked.add(Material.FENCE_GATE);
 		
 		// And now:  Pressure plates!
 		lockable.put(Material.STONE_PLATE,false);
 		lockable.put(Material.WOOD_PLATE,false);
-
+		
+		// Doors are lockable, leftLocked AND vertically speaking TWO blocks.
+		// This makes them rather complex to lock...
+		lockable.put(Material.WOODEN_DOOR, true);
+		leftLocked.add(Material.WOODEN_DOOR);
+		lockIncludeVertical.add(Material.WOODEN_DOOR);
+		
+		
+		// Some types will "suck" in items, if enabled
+		canSuck.add(Material.CHEST);
+		canSuck.add(Material.DISPENSER);
 	}
 	public boolean canLock (Block block){
 		if (block == null) return false;
@@ -263,18 +271,34 @@ public class SCL extends JavaPlugin {
 		}
 	}
 	public void loadConfig() {
-		File configFile = new File(this.getDataFolder(),"settings.yml");
-		File configDir = this.getDataFolder();
-		Configuration config = new Configuration(configFile);
+		File configFile = new File(this.getDataFolder(),"config.yml");
+		File oldConfigFile = new File(this.getDataFolder(),"settings.yml");
+		FileConfiguration config = this.getConfig();
 		
-		config.load();
+		if (oldConfigFile.exists()){
+			out("Old configuration file found, attempting to move to one!");
+			try {
+				config.load(oldConfigFile);
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+				crap("Uh, old config file went away.");
+			} catch (IOException e) {
+				e.printStackTrace();
+				crap("Permissions issues on old config file, perhaps?  Whatever, it's gone.");
+			} catch (InvalidConfigurationException e) {
+				e.printStackTrace();
+				crap("Old config file isn't valid, and will be clobbered.");
+			}
+			oldConfigFile.delete();
+		}
 		verbose = config.getBoolean("verbose", false);
 		Integer keyInt = config.getInt("key",280); // Stick
 		Integer comboKeyInt = config.getInt("comboKey",352); // Bone
-		
 		lockpair = config.getBoolean("lockpair", true);
 		usePermissionsWhitelist = config.getBoolean("usePermissionsWhitelist",false);
 		openMessage = config.getBoolean("openMessage", true);
+		lockedChestsSuck = config.getBoolean("lockedChestsSuck",false);
+		suckRange = config.getInt("suckRange",3);
 		key = Material.getMaterial(keyInt);
 		comboKey = Material.getMaterial(comboKeyInt);
 		if (key == null){
@@ -285,17 +309,12 @@ public class SCL extends JavaPlugin {
 			comboKey = Material.BONE;
 			this.crap("OY!  Materail ID "+comboKeyInt+" is not a real material. Falling back to using BONE (ID 352) for the combo key.");
 		}
-		if (!configFile.exists()){
-			if (!configDir.exists()){
-				configDir.mkdir();
-			}
-			try {
-				configFile.createNewFile();
-			} catch (IOException e) {
-				e.printStackTrace();
-				this.crap("IOError while creating config file: "+e.getMessage());
-			}
-			config.save();
+		
+		try {
+			config.save(configFile);
+		} catch (IOException e) {
+			e.printStackTrace();
+			this.crap("IOError while creating config file: "+e.getMessage());
 		}
 	}
 }

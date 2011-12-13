@@ -8,14 +8,23 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 
+import org.bukkit.Chunk;
 import org.bukkit.DyeColor;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.ContainerBlock;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 
 public class SCLList implements Runnable {
 	SCL plugin;
@@ -100,6 +109,61 @@ public class SCLList implements Runnable {
 			plugin.crap("Okay, crap, IOExeption while writing "+filename+": "+e.getMessage());
 		}
 	}
+	public void suck(){
+		for (SCLItem item : list.values() ){
+			Block block = item.getLocation().getBlock();
+			
+			Chunk chunk = block.getChunk();
+			
+			if (chunk.isLoaded() && plugin.canSuck.contains(block.getType())){
+				if (block.getState() instanceof ContainerBlock){
+					ContainerBlock container = (ContainerBlock)block.getState();
+					Inventory inventory = container.getInventory();
+					if (inventory.firstEmpty() != -1){ // No sense in sucking at all if it doesn't have space to begin with!
+						ArrayList<Entity> entityList = new ArrayList<Entity>();
+						for (Chunk inChunk : getNearbyChunks(block,plugin.suckRange)){
+							for (Entity entity : inChunk.getEntities()){
+								entityList.add(entity);
+							}
+						}
+						for (Entity entity : entityList){
+							if(entity instanceof Item && entity.getLocation().distance(block.getLocation()) <= plugin.suckRange){
+								ItemStack itemFound = ((Item)entity).getItemStack().clone();
+								if (inventory.firstEmpty() != -1){ 
+									inventory.addItem(itemFound);
+									entity.remove();
+								}
+								else {
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	public HashSet<Chunk> getNearbyChunks(Block origin,int range){
+		HashSet<Chunk> chunks = new HashSet<Chunk>();
+		for (Block block : getNearbyBlocks(origin,range)){
+			chunks.add(block.getChunk());
+		}
+		return chunks;
+	}
+	public List<Block> getNearbyBlocks(Block origin,int range){
+		ArrayList<Block> blocks = new ArrayList<Block>();
+		Location cornerOne = origin.getLocation().add(range,range,range);
+		Location cornerTwo = origin.getLocation().subtract(range,range,range);
+		World world = origin.getWorld();
+		for (int x = cornerTwo.getBlockX(); x<=cornerOne.getBlockX();x++){
+			for (int y = cornerTwo.getBlockY(); y<=cornerOne.getBlockY();y++){
+				for (int z = cornerTwo.getBlockZ(); z<=cornerOne.getBlockZ();z++){
+					blocks.add(world.getBlockAt(x,y,z));
+				}
+			}
+		}
+		return blocks;
+	}
 	public String getOwner(Block block){
 		if (block == null) return null;
 		if (list.containsKey(block.getLocation())){
@@ -155,6 +219,7 @@ public class SCLList implements Runnable {
 				list.put(block.getLocation(),new SCLItem(player,block));
 				lockedItems = 1;
 			}
+			save("Chests.txt");
 			return lockedItems;
 		}
 		else {
@@ -200,6 +265,7 @@ public class SCLList implements Runnable {
 					list.remove(block.getLocation());
 					unlockedItems = 1;
 				}
+				save("Chests.txt");
 				return unlockedItems;
 			}
 			else {
@@ -215,22 +281,24 @@ public class SCLList implements Runnable {
 		neighbours.add(block.getRelative(BlockFace.SOUTH));
 		neighbours.add(block.getRelative(BlockFace.EAST));
 		neighbours.add(block.getRelative(BlockFace.WEST));
+		
 		// For doors
-		//neighbours.add(block.getRelative(BlockFace.UP));
-		//neighbours.add(block.getRelative(BlockFace.DOWN));
-		
-		
-		HashSet<Block> additionalNeighbours = new HashSet<Block>();
-		for (Block neighbour : neighbours){
-			Block above = neighbour.getRelative(BlockFace.UP);
-			additionalNeighbours.add(above);
-			
-			Block below = neighbour.getRelative(BlockFace.DOWN);
-			additionalNeighbours.add(below);
-			
+		if (plugin.lockIncludeVertical.contains(block.getType())){
+			plugin.babble(block.getType().toString()+" is vertically locked.");
+			HashSet<Block> additionalNeighbours = new HashSet<Block>();
+			for (Block neighbour : neighbours){
+				Block above = neighbour.getRelative(BlockFace.UP);
+				additionalNeighbours.add(above);
+				
+				Block below = neighbour.getRelative(BlockFace.DOWN);
+				additionalNeighbours.add(below);
+				
+			}
+			neighbours.addAll(additionalNeighbours);
 		}
-		neighbours.addAll(additionalNeighbours);
-		
+		else {
+			plugin.babble(block.getType().toString()+" is NOT vertically locked.");
+		}
 		
 		return neighbours;
 	}
@@ -261,7 +329,6 @@ public class SCLList implements Runnable {
 	}
 	private Integer addNeighboring (Block block,Player owner) {
 		Integer additionalItemsLocked = 0;
-		plugin.out(block.getLocation().toString());
 		for (Block currentNeighbour : this.getNeighbours(block)){
 			if (currentNeighbour.getType().equals(block.getType())){
 				if (list.containsKey(currentNeighbour.getLocation())){
@@ -280,7 +347,7 @@ public class SCLList implements Runnable {
 		return additionalItemsLocked;
 	}
 	@Override
-	public void run() { // So saving to the default filename is easily scheduled
-		this.save("Chests.txt");
+	public void run() {
+		this.suck();
 	}
 }

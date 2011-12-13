@@ -160,7 +160,7 @@ public class SCLPlayerListener extends PlayerListener {
 								!(plugin.usePermissionsWhitelist)
 								|| ( 
 										plugin.usePermissionsWhitelist 
-										&& plugin.permit(player, new String[]{"simplechestlock.lock.*","simplechestlock.lock."+block.getType().toString()})
+										&& plugin.permit(player, new String[]{"simplechestlock.locktype."+block.getType().toString().toLowerCase(),"simplechestlock.locktype.*"})
 									)
 							){
 								if (tool.getType().equals(plugin.comboKey)){

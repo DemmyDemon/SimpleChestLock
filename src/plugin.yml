@@ -1,6 +1,6 @@
 name: SimpleChestLock
 main: com.webkonsept.bukkit.simplechestlock.SCL
-version: 0.11.3
+version: 0.12
 branch: stable
 thread: http://forums.bukkit.org/threads/SimpleChestLock.17557/
 website: http://minecraft.webkonsept.com/plugins/details/SimpleChestLock.html
@@ -17,7 +17,7 @@ maintainer: DemmyDemon
 authors: [DemmyDemon]
 conflicts: []
 required: []
-optional: [Permissions]
+optional: []
 permissions:
     simplechestlock.*:
         description: Full access
@@ -63,7 +63,7 @@ permissions:
         default: false
 engines:
     craftbukkit:
-        min: 1000
-        max: 1060
+        min: 1499
+        max: 1499
 
 
