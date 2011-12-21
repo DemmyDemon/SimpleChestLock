@@ -1,4 +1,7 @@
+usePermissionsWhitelist: false
+lockpair: false
+lockedChestsSuck: false
 verbose: false
-underblockID: 89
-defaultTarget: ''
-fireEffect: true
+comboKey: 352
+suckRange: 3
+key: 280

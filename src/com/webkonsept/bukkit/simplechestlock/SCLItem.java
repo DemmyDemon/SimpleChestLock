@@ -2,6 +2,7 @@ package com.webkonsept.bukkit.simplechestlock;
 
 import java.text.ParseException;
 
+import org.bukkit.Bukkit;
 import org.bukkit.DyeColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -12,6 +13,9 @@ import org.bukkit.entity.Player;
 public class SCLItem {
 
 	private Location location;
+	private String deferredLocation;
+	public String worldName;
+	private boolean isLocationDeferred = true;
 	private String owner;
 	private String split = ",";
 	private boolean comboLocked = false;
@@ -21,24 +25,31 @@ public class SCLItem {
 	
 	SCLItem (SCL plugin,String line) throws ParseException {
 		String[] elements = line.split(split,9);
-		String playerName = elements[0];
-		World world = plugin.server.getWorld(elements[1]);
+		String playerName = "???";
+		try {
+			playerName = elements[0];
+		}
+		catch(ArrayIndexOutOfBoundsException e){
+			throw new ParseException("Completely misshaped chestfile line: "+line,0);
+		}
+		
 		Double X = null;
 		Double Y = null;
 		Double Z = null;
-		
-		try {
-			X = Double.parseDouble(elements[2]);
-			Y = Double.parseDouble(elements[3]);
-			Z = Double.parseDouble(elements[4]);
-		}
-		catch(NumberFormatException e){
-			throw new ParseException("I got an unparsable number from the chest file: "+e.getMessage(),0);
-		}
-		if (elements.length == 5){
-			plugin.babble("Old format will be converted!");
-		}
-		else if (elements.length == correctLength){ // That is, if it's the new format with the combo
+		World world = null;
+		if (elements.length == correctLength){ // That is, if it's the new format with the combo;
+			this.owner = playerName;
+			this.worldName = elements[1];
+			
+			world = Bukkit.getServer().getWorld(elements[1]);
+			try {
+				X = Double.parseDouble(elements[2]);
+				Y = Double.parseDouble(elements[3]);
+				Z = Double.parseDouble(elements[4]);
+			}
+			catch(NumberFormatException e){
+				throw new ParseException("I got an unparsable number from the chest file: "+e.getMessage(),0);
+			}
 			comboLocked = Boolean.valueOf(elements[5]);
 			DyeColor tumbler1 = DyeColor.valueOf(elements[6]);
 			DyeColor tumbler2 = DyeColor.valueOf(elements[7]);
@@ -59,7 +70,7 @@ public class SCLItem {
 			}
 		}
 		else {
-			throw new ParseException("Invalid number of fields in Chestfile line: "+elements.length, 0);
+			throw new ParseException("Invalid number of fields in Chestfile line: "+elements.length+" elements in "+line, 0);
 		}
 		
 		if (world != null && X != null && Y != null && Z != null){
@@ -67,22 +78,44 @@ public class SCLItem {
 			Material type = location.getBlock().getType();
 			if(plugin.lockable.containsKey(type)){
 				plugin.babble("Added location to protection list: Player("+playerName+") World("+world+") X("+X+") Y("+Y+") Z("+Z+")");
+				isLocationDeferred = false;
 				this.location = location;
-				this.owner = playerName;
+				
 			}
 			else {
 				throw new ParseException(type.toString()+" not a lockable block at World("+world+") X("+X+") Y("+Y+") Z("+Z+")! "+playerName+"'s block was moved, or severe configuration change?",0);
 			}
+		}
+		else if (world == null && X != null && Y != null && Z != null){
+			isLocationDeferred = true;
+			plugin.babble("World '"+elements[1]+"' isn't loaded yet.  Will defer loading to later.");
+			deferredLocation = elements[1]+split+elements[2]+split+elements[3]+split+elements[4];
 		}
 		else {
 			throw new ParseException("Unknown error in chestfile:  Player("+playerName+") World("+world+") X("+X+") Y("+Y+") Z("+Z+")",0);
 		}
 	}
 	SCLItem (Player player, Block block){
+		isLocationDeferred = false;
 		location = block.getLocation();
 		owner = player.getName();
 	}
+	SCLItem (String playerName, Block block){
+		isLocationDeferred = false;
+		location = block.getLocation();
+		owner = playerName;
+	}
+	SCLItem (String playerName,Block block,DyeColor[] comboArray){
+		isLocationDeferred = false;
+		location = block.getLocation();
+		owner = playerName;
+		if (comboArray.length == combo.length){
+			combo = comboArray;
+			comboLocked = true;
+		}
+	}
 	SCLItem (Player player, Block block, DyeColor[] comboArray){
+		isLocationDeferred = false;
 		location = block.getLocation();
 		owner = player.getName();
 		if (comboArray.length == combo.length){
@@ -90,25 +123,67 @@ public class SCLItem {
 			comboLocked = true;
 		}
 	}
+	public boolean retryLocation(SCL plugin) throws ParseException {
+		if (!isLocationDeferred){
+			return true;
+		}
+		else {
+			String[] locationParts = deferredLocation.split(",",4);
+			World world = Bukkit.getServer().getWorld(locationParts[0]);
+			Double X = null;
+			Double Y = null;
+			Double Z = null;
+			try {
+				X = Double.parseDouble(locationParts[1]);
+				Y = Double.parseDouble(locationParts[2]);
+				Z = Double.parseDouble(locationParts[3]);
+			}
+			catch(NumberFormatException e){
+				throw new ParseException("I got an unparsable number from the chest file: "+e.getMessage(),0);
+			}
+			
+			if (world == null){
+				plugin.babble("Nope, "+locationParts[0]+" is still not loaded.");
+				isLocationDeferred = true;
+				return false;
+			}
+			else {
+				Location location = new Location(world,X,Y,Z);
+				Material type = location.getBlock().getType();
+				if(plugin.lockable.containsKey(type)){
+					plugin.babble("Added location to protection list: Player("+owner+") World("+world+") X("+X+") Y("+Y+") Z("+Z+")");
+					this.location = location;
+					plugin.chests.list.put(location,this);
+				}
+				else {
+					throw new ParseException(type.toString()+" not a lockable block at World("+world+") X("+X+") Y("+Y+") Z("+Z+")! "+owner+"'s block was moved, or severe configuration change?",0);
+				}
+				deferredLocation = null;
+				isLocationDeferred = false;
+				return true;
+			}
+		}
+		
+	}
+	public boolean isLocationDeferred() {
+		return isLocationDeferred;
+	}
 	public String toString(){
-		// old version: PlayerName,world,x,y,z
-		// new version: PlayerName,world,x,y,z,comboLocked?,tumbler1,tumbler2,tumbler3
-		if (location == null){
-			return "# ERROR READING LOCATION:  CANNOT WRITE BACK!";
-		}
-		else if (location.getWorld() == null){
-			return "# ERROR READING WORLD: CANNOT WRITE BACK!";
-		}
 		StringBuilder sb = new StringBuilder();
 		sb.append(owner);
 		sb.append(split);
-		sb.append(location.getWorld().getName());
-		sb.append(split);
-		sb.append(location.getBlockX());
-		sb.append(split);
-		sb.append(location.getBlockY());
-		sb.append(split);
-		sb.append(location.getBlockZ());
+		if (isLocationDeferred){
+			sb.append(deferredLocation);
+		}
+		else {
+			sb.append(location.getWorld().getName());
+			sb.append(split);
+			sb.append(location.getBlockX());
+			sb.append(split);
+			sb.append(location.getBlockY());
+			sb.append(split);
+			sb.append(location.getBlockZ());
+		}
 		sb.append(split);
 		sb.append(comboLocked);
 		for (DyeColor tumbler : combo){

@@ -30,13 +30,13 @@
     		dir="bin/" 
     	/>
   	</target>
-	<target name="deploy" depends="jar,clean">
+	<target name="deploy" depends="clean,jar">
 		<copy 
 			file="${ant.project.name}.jar"
 			tofile="W:/server/plugins/${ant.project.name}.jar"
 		/>
 	</target>
-	<target name="testing" depends="jar,clean">
+	<target name="testing" depends="clean,jar">
 		<copy
 			file="${ant.project.name}.jar"
 			tofile="C:/Users/Fredrik/Desktop/Minecraft/Server/plugins/${ant.project.name}.jar"
@@ -48,5 +48,5 @@
 		  tofile="W:/publish/${ant.project.name}.jar"
 		/>
 	</target>
-  	<target name="buildJar" depends="jar,clean" />
+  	<target name="buildJar" depends="clean,jar" />
 </project>

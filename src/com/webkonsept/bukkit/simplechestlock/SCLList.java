@@ -30,9 +30,26 @@ public class SCLList implements Runnable {
 	SCL plugin;
 	HashMap<Location,SCLItem> list = new HashMap<Location,SCLItem>();
 	int key = 0;
+	HashSet<SCLItem> deferredItems = new HashSet<SCLItem>();
 	
 	public SCLList(SCL instance) {
 		plugin = instance;
+	}
+	public void retryDeferred(String worldName){
+		List<SCLItem> successful = new ArrayList<SCLItem>();
+		for (SCLItem item : deferredItems){
+			if (item.worldName.equals(worldName)){
+				try {
+					item.retryLocation(plugin);
+				} catch (ParseException e) {
+					plugin.crap("Failed to retry item loading, parse error during location retry: "+e.getMessage());
+				}
+				successful.add(item);
+			}
+		}
+		for (SCLItem resolved : successful){
+			deferredItems.remove(resolved);
+		}
 	}
 	public void load (String filename) {
 		File lockedItemFile = new File (plugin.getDataFolder(),filename);
@@ -216,7 +233,11 @@ public class SCLList implements Runnable {
 				lockedItems = this.addNeighboring(block,player);
 			}
 			else {
-				list.put(block.getLocation(),new SCLItem(player,block));
+				String lockAs = player.getName();
+				if (plugin.locksAs.containsKey(lockAs)){
+					lockAs = plugin.locksAs.get(lockAs);
+				}
+				list.put(block.getLocation(),new SCLItem(lockAs,block));
 				lockedItems = 1;
 			}
 			save("Chests.txt");
@@ -234,7 +255,11 @@ public class SCLList implements Runnable {
 				lockedItems = this.addNeighboring(block, player,combo);
 			}
 			else {
-				list.put(block.getLocation(),new SCLItem(player,block,combo));
+				String lockAs = player.getName();
+				if (plugin.locksAs.containsKey(lockAs)){
+					lockAs = plugin.locksAs.get(lockAs);
+				}
+				list.put(block.getLocation(),new SCLItem(lockAs,block,combo));
 				lockedItems = 1;
 			}
 			return lockedItems;
@@ -318,10 +343,15 @@ public class SCLList implements Runnable {
 	}
 	private Integer addNeighboring (Block block,Player owner,DyeColor[] combo) {
 		Integer additionalItemsLocked = 0;
-		
+		String ownerName = owner.getName();
+		if (plugin.locksAs.containsKey(ownerName)){
+			ownerName = plugin.locksAs.get(ownerName);
+			plugin.babble("Locking as "+ownerName);
+		}
 		for (Block currentNeighbour : this.getNeighbours(block)){
 			if (currentNeighbour.getType().equals(block.getType())){
-				list.put(currentNeighbour.getLocation(), new SCLItem(owner,currentNeighbour,combo));
+				list.put(currentNeighbour.getLocation(), new SCLItem(ownerName,currentNeighbour,combo));
+				plugin.babble("ComboLocked a block by association");
 				additionalItemsLocked++;
 			}
 		}
@@ -329,6 +359,10 @@ public class SCLList implements Runnable {
 	}
 	private Integer addNeighboring (Block block,Player owner) {
 		Integer additionalItemsLocked = 0;
+		String ownerName = owner.getName();
+		if (plugin.locksAs.containsKey(ownerName)){
+			ownerName = plugin.locksAs.get(ownerName);
+		}
 		for (Block currentNeighbour : this.getNeighbours(block)){
 			if (currentNeighbour.getType().equals(block.getType())){
 				if (list.containsKey(currentNeighbour.getLocation())){
@@ -336,7 +370,7 @@ public class SCLList implements Runnable {
 				}
 				else {
 					plugin.babble("Locking "+currentNeighbour.getType().toString().toLowerCase()+" at "+currentNeighbour.getLocation().toString());
-					list.put(currentNeighbour.getLocation(), new SCLItem(owner,currentNeighbour));
+					list.put(currentNeighbour.getLocation(), new SCLItem(ownerName,currentNeighbour));
 					additionalItemsLocked++;
 				}
 			}
@@ -348,6 +382,8 @@ public class SCLList implements Runnable {
 	}
 	@Override
 	public void run() {
-		this.suck();
+		if (plugin.lockedChestsSuck){
+			this.suck();
+		}
 	}
 }

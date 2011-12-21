@@ -14,14 +14,12 @@ import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.InvalidConfigurationException;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.Event.Priority;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-
 public class SCL extends JavaPlugin {
 	private Logger log = Logger.getLogger("Minecraft");
 	protected boolean verbose = false;
@@ -47,9 +45,13 @@ public class SCL extends JavaPlugin {
 	// Okay for the "sucks items" feature (Item containers only plx!)
 	public HashSet<Material> canSuck = new HashSet<Material>();
 	
+	// The "Lock as" feature!
+	public HashMap<String,String> locksAs = new HashMap<String,String>();
+	
 	private SCLPlayerListener 	playerListener 	= new SCLPlayerListener(this);
 	private SCLBlockListener 	blockListener 	= new SCLBlockListener(this);
 	private SCLEntityListener 	entityListener 	= new SCLEntityListener(this);
+	private SCLWorldListener	worldListener	= new SCLWorldListener(this);
 	protected SCLList			chests			= new SCLList(this);
 	
 	@Override
@@ -70,6 +72,7 @@ public class SCL extends JavaPlugin {
 		pm.registerEvent(Event.Type.BLOCK_BREAK,blockListener, Priority.Normal, this);
 		pm.registerEvent(Event.Type.BLOCK_PLACE,blockListener, Priority.Normal, this);
 		pm.registerEvent(Event.Type.ENTITY_EXPLODE,entityListener,Priority.Normal,this);
+		pm.registerEvent(Event.Type.WORLD_LOAD, worldListener,Priority.Normal, this);
 		if (lockedChestsSuck){
 			server.getScheduler().scheduleSyncRepeatingTask(this,chests, 100, 100);
 		}
@@ -97,7 +100,18 @@ public class SCL extends JavaPlugin {
 				if (args[0].equalsIgnoreCase("reload")){
 					success = true;  // This is a valid command.
 					if ( !isPlayer  || this.permit(player, "simplechestlock.command.reload")){
-						this.loadConfig();
+						try {
+							getConfig().load(new File(getDataFolder(),"config.yml"));
+							this.loadConfig();
+						} catch (FileNotFoundException e) {
+							crap("Configuration file went away!");
+						} catch (IOException e) {
+							e.printStackTrace();
+							crap("IOException while reading the config file!  "+e.getMessage());
+						} catch (InvalidConfigurationException e) {
+							e.printStackTrace();
+							crap("Looks like you suck at YAML.  Try again.");
+						}
 						String saveFile = "Chests.txt";
 						if (args.length == 2){
 							saveFile = args[1];
@@ -112,6 +126,30 @@ public class SCL extends JavaPlugin {
 					}
 					else {
 						sender.sendMessage(ChatColor.RED+"[SimpleChestLock] Sorry, permission denied!");
+					}
+				}
+				else if (args[0].equalsIgnoreCase("as")){
+					success = true;
+					if (args.length == 2){
+						if (!isPlayer){
+							sender.sendMessage("Sorry mr. Console, you can't lock as anyone.  How will you swing the stick?");
+						}
+						else if (this.permit(player, "simplechestlock.command.as")){
+							locksAs.put(player.getName(),args[1]);
+							sender.sendMessage(ChatColor.RED+"[SimpleChestLock] Locking chests for "+args[1]);
+						}
+						else {
+							sender.sendMessage(ChatColor.RED+"[SimpleChestLock] Sorry, permission denied!");
+						}
+					}
+					else if (args.length == 1){
+						if (locksAs.containsKey(player.getName())){
+							locksAs.remove(player.getName());
+						}
+						sender.sendMessage(ChatColor.GREEN+"[SimpleChestLock] Locking chests for yourself");
+					}
+					else if (args.length > 2){
+						sender.sendMessage(ChatColor.YELLOW+"[SimpleChestLock] Argument amount mismatch.  /scl as <name>");
 					}
 				}
 				else if (args[0].equalsIgnoreCase("save")){
@@ -273,12 +311,24 @@ public class SCL extends JavaPlugin {
 	public void loadConfig() {
 		File configFile = new File(this.getDataFolder(),"config.yml");
 		File oldConfigFile = new File(this.getDataFolder(),"settings.yml");
-		FileConfiguration config = this.getConfig();
+		getConfig().options().copyDefaults(true);
+		getConfig().addDefaults(new HashMap<String,Object>(){
+			private static final long serialVersionUID = 1L;// So shut up, Java.
+			{
+				put("verbose",false);
+				put("key",280);
+				put("comboKey",352);
+				put("lockpair",false);
+				put("usePermissionsWhitelist",false);
+				put("lockedChestsSuck",false);
+				put("suckRange",3);
+			}
+		});
 		
 		if (oldConfigFile.exists()){
 			out("Old configuration file found, attempting to move to one!");
 			try {
-				config.load(oldConfigFile);
+				getConfig().load(oldConfigFile);
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 				crap("Uh, old config file went away.");
@@ -291,14 +341,14 @@ public class SCL extends JavaPlugin {
 			}
 			oldConfigFile.delete();
 		}
-		verbose = config.getBoolean("verbose", false);
-		Integer keyInt = config.getInt("key",280); // Stick
-		Integer comboKeyInt = config.getInt("comboKey",352); // Bone
-		lockpair = config.getBoolean("lockpair", true);
-		usePermissionsWhitelist = config.getBoolean("usePermissionsWhitelist",false);
-		openMessage = config.getBoolean("openMessage", true);
-		lockedChestsSuck = config.getBoolean("lockedChestsSuck",false);
-		suckRange = config.getInt("suckRange",3);
+		verbose = getConfig().getBoolean("verbose", false);
+		Integer keyInt = getConfig().getInt("key",280); // Stick
+		Integer comboKeyInt = getConfig().getInt("comboKey",352); // Bone
+		lockpair = getConfig().getBoolean("lockpair", true);
+		usePermissionsWhitelist = getConfig().getBoolean("usePermissionsWhitelist",false);
+		openMessage = getConfig().getBoolean("openMessage", true);
+		lockedChestsSuck = getConfig().getBoolean("lockedChestsSuck",false);
+		suckRange = getConfig().getInt("suckRange",3);
 		key = Material.getMaterial(keyInt);
 		comboKey = Material.getMaterial(comboKeyInt);
 		if (key == null){
@@ -310,11 +360,13 @@ public class SCL extends JavaPlugin {
 			this.crap("OY!  Materail ID "+comboKeyInt+" is not a real material. Falling back to using BONE (ID 352) for the combo key.");
 		}
 		
-		try {
-			config.save(configFile);
-		} catch (IOException e) {
-			e.printStackTrace();
-			this.crap("IOError while creating config file: "+e.getMessage());
+		if (!configFile.exists()){
+			try {
+				getConfig().save(configFile);
+			} catch (IOException e) {
+				e.printStackTrace();
+				this.crap("IOError while creating config file: "+e.getMessage());
+			}
 		}
 	}
 }

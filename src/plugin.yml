@@ -1,6 +1,6 @@
 name: SimpleChestLock
 main: com.webkonsept.bukkit.simplechestlock.SCL
-version: 0.12
+version: 0.13
 branch: stable
 thread: http://forums.bukkit.org/threads/SimpleChestLock.17557/
 website: http://minecraft.webkonsept.com/plugins/details/SimpleChestLock.html
@@ -9,7 +9,7 @@ database: false
 commands:
     scl:
         description:  Interact with SimpleChestLock
-        usage: /<command> [save|reload|status]
+        usage: /<command> [save|reload|status|as]
 generators: [bukget]
 categories: [ SEC, MECH ]
 description: Gives players the ability to lock chests and other blocks.
@@ -18,13 +18,14 @@ authors: [DemmyDemon]
 conflicts: []
 required: []
 optional: []
+softdepend: [MultiVerse,Multiverse-Core,MyWorlds,emericaWorlds,WormholeExtreme]
 permissions:
     simplechestlock.*:
         description: Full access
         children:
             simplechestlock.command.*: true
             simplechestlock.ignoreowner: true
-            simplechestlock.lock.*: true
+            simplechestlock.locktype.*: true
             simplechestlock.lock: true
             simplechestlock.usecombo: true
     simplechestlock.command.*:
@@ -34,6 +35,7 @@ permissions:
             simplechestlock.command.save: true
             simplechestlock.command.status: true
             simplechestlock.command.list: true
+            simplechestlock.command.as: true
     simplechestlock.command.reload:
         description: Access to /scl reload
         default: op
@@ -46,6 +48,9 @@ permissions:
     simplechestlock.command.list:
         description: Access to /scl list
         default: op
+    simplechestlock.command.as:
+        description: Access to /scl as <name>
+        default: op
     simplechestlock.ignoreowner:
         description: Unlock any item, use any item.
         default: op
@@ -55,10 +60,10 @@ permissions:
     simplechestlock.usecombo:
         description: Access to locking with a combination lock
         default: op
-    simplechestlock.lock.*:
+    simplechestlock.locktype.*:
         description: Lock any lockable item
         default: op
-    simplechestlock.lock.Lockable_Name_Here:
+    simplechestlock.locktype.Lockable_Name_Here:
         description: Gives permission to lock Lockable_Name_Here blocks
         default: false
 engines:

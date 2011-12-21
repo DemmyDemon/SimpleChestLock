@@ -163,6 +163,12 @@ public class SCLPlayerListener extends PlayerListener {
 										&& plugin.permit(player, new String[]{"simplechestlock.locktype."+block.getType().toString().toLowerCase(),"simplechestlock.locktype.*"})
 									)
 							){
+								boolean lockForSomeone = false;
+								String locksFor = "???";
+								if (plugin.locksAs.containsKey(player.getName())){
+									locksFor = plugin.locksAs.get(player.getName());
+									lockForSomeone = true;
+								}
 								if (tool.getType().equals(plugin.comboKey)){
 									if (plugin.permit(player, "simplechestlock.usecombo")){
 										Inventory inv = player.getInventory();
@@ -178,10 +184,20 @@ public class SCLPlayerListener extends PlayerListener {
 											String comboString = tumbler1.toString()+","+tumbler2.toString()+","+tumbler3.toString();
 											Integer itemsLocked = plugin.chests.lock(player,block,combo);
 											if (itemsLocked == 1){
-												player.sendMessage(ChatColor.GREEN+ucfirst(typeName)+" locked!  Combo is "+comboString);
+												if (lockForSomeone){
+													player.sendMessage(ChatColor.GREEN+ucfirst(typeName)+" locked for "+locksFor+"!  Combo is "+comboString);
+												}
+												else {
+													player.sendMessage(ChatColor.GREEN+ucfirst(typeName)+" locked!  Combo is "+comboString);
+												}
 											}
 											else if (itemsLocked > 1){
-												player.sendMessage(ChatColor.GREEN+itemsLocked.toString()+" "+typeName+"s locked!  Combo is "+comboString);
+												if (lockForSomeone){
+													player.sendMessage(ChatColor.GREEN+itemsLocked.toString()+" "+typeName+"s locked for "+locksFor+"!  Combo is "+comboString);
+												}
+												else {
+													player.sendMessage(ChatColor.GREEN+itemsLocked.toString()+" "+typeName+"s locked!  Combo is "+comboString);
+												}
 											}
 											else{
 												player.sendMessage(ChatColor.RED+"Error encountered while locking this "+typeName);
@@ -199,10 +215,20 @@ public class SCLPlayerListener extends PlayerListener {
 								else {
 									Integer chestsLocked = plugin.chests.lock(player, block);
 									if (chestsLocked == 1){
-										player.sendMessage(ChatColor.GREEN+ucfirst(typeName)+" locked!");
+										if (lockForSomeone){
+											player.sendMessage(ChatColor.GREEN+ucfirst(typeName)+" locked for "+locksFor+"!");
+										}
+										else {
+											player.sendMessage(ChatColor.GREEN+ucfirst(typeName)+" locked!");
+										}
 									}
 									else if (chestsLocked > 1){
-										player.sendMessage(ChatColor.GREEN+chestsLocked.toString()+" "+typeName+"s locked!");
+										if (lockForSomeone){
+											player.sendMessage(ChatColor.GREEN+chestsLocked.toString()+" "+typeName+"s locked for "+locksFor+"!");
+										}
+										else {
+											player.sendMessage(ChatColor.GREEN+chestsLocked.toString()+" "+typeName+"s locked!");
+										}
 									}
 									else{
 										player.sendMessage(ChatColor.RED+"Error encountered while locking this "+typeName);
