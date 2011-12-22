@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.UUID;
 
 import org.bukkit.Chunk;
 import org.bukkit.DyeColor;
@@ -127,11 +128,11 @@ public class SCLList implements Runnable {
 		}
 	}
 	public void suck(){
+		HashSet<UUID> sucked = new HashSet<UUID>();
 		for (SCLItem item : list.values() ){
 			Block block = item.getLocation().getBlock();
 			
 			Chunk chunk = block.getChunk();
-			
 			if (chunk.isLoaded() && plugin.canSuck.contains(block.getType())){
 				if (block.getState() instanceof ContainerBlock){
 					ContainerBlock container = (ContainerBlock)block.getState();
@@ -140,25 +141,28 @@ public class SCLList implements Runnable {
 						ArrayList<Entity> entityList = new ArrayList<Entity>();
 						for (Chunk inChunk : getNearbyChunks(block,plugin.suckRange)){
 							for (Entity entity : inChunk.getEntities()){
-								entityList.add(entity);
+								if (entity instanceof Item && entity.getLocation().distance(block.getLocation()) <= plugin.suckRange){
+									entityList.add(entity);
+								}
 							}
 						}
 						for (Entity entity : entityList){
-							if(entity instanceof Item && entity.getLocation().distance(block.getLocation()) <= plugin.suckRange){
-								ItemStack itemFound = ((Item)entity).getItemStack().clone();
-								if (inventory.firstEmpty() != -1){ 
-									inventory.addItem(itemFound);
-									entity.remove();
-								}
-								else {
-									break;
-								}
+							ItemStack original = ((Item)entity).getItemStack();
+							ItemStack itemFound = original.clone();
+							if ( inventory.firstEmpty() != -1 && !sucked.contains(entity.getUniqueId()) ){ 
+								inventory.addItem(itemFound);
+								entity.remove();
+								sucked.add(entity.getUniqueId());
+							}
+							else {
+								break;
 							}
 						}
 					}
 				}
 			}
 		}
+
 	}
 	public HashSet<Chunk> getNearbyChunks(Block origin,int range){
 		HashSet<Chunk> chunks = new HashSet<Chunk>();
