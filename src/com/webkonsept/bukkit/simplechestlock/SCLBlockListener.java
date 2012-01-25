@@ -5,18 +5,20 @@ import java.util.HashSet;
 import org.bukkit.ChatColor;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockListener;
 import org.bukkit.event.block.BlockPlaceEvent;
 
-public class SCLBlockListener extends BlockListener {
+public class SCLBlockListener implements Listener {
 	SCL plugin;
 	
 	public SCLBlockListener(SCL instance) {
 		plugin = instance;
 	}
 	
-	public void onBlockBreak(BlockBreakEvent event){
+	@EventHandler
+	public void onBlockBreak(final BlockBreakEvent event){
 		
 		if (! plugin.isEnabled() ) return;
 		if ( event.isCancelled() ) return;
@@ -48,7 +50,9 @@ public class SCLBlockListener extends BlockListener {
 			}
 		}
 	}
-	public void onBlockPlace(BlockPlaceEvent event){
+	
+	@EventHandler
+	public void onBlockPlace(final BlockPlaceEvent event){
 		if (!plugin.isEnabled()) return;
 		if (event.isCancelled()) return;
 		

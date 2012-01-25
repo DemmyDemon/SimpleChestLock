@@ -15,11 +15,10 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
-import org.bukkit.event.Event.Priority;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+
 public class SCL extends JavaPlugin {
 	private Logger log = Logger.getLogger("Minecraft");
 	protected boolean verbose = false;
@@ -48,10 +47,10 @@ public class SCL extends JavaPlugin {
 	// The "Lock as" feature!
 	public HashMap<String,String> locksAs = new HashMap<String,String>();
 	
-	private SCLPlayerListener 	playerListener 	= new SCLPlayerListener(this);
-	private SCLBlockListener 	blockListener 	= new SCLBlockListener(this);
-	private SCLEntityListener 	entityListener 	= new SCLEntityListener(this);
-	private SCLWorldListener	worldListener	= new SCLWorldListener(this);
+	private final SCLPlayerListener 	playerListener 	= new SCLPlayerListener(this);
+	private final SCLBlockListener 	blockListener 	= new SCLBlockListener(this);
+	private final SCLEntityListener 	entityListener 	= new SCLEntityListener(this);
+	private final SCLWorldListener	worldListener	= new SCLWorldListener(this);
 	protected SCLList			chests			= new SCLList(this);
 	
 	@Override
@@ -68,11 +67,18 @@ public class SCL extends JavaPlugin {
 		server = getServer();
 		chests.load("Chests.txt");
 		PluginManager pm = getServer().getPluginManager();
+		
+		pm.registerEvents(playerListener,this);
+		pm.registerEvents(blockListener,this);
+		pm.registerEvents(entityListener,this);
+		pm.registerEvents(worldListener,this);
+		/* OLD!
 		pm.registerEvent(Event.Type.PLAYER_INTERACT,playerListener,Priority.Normal, this);
 		pm.registerEvent(Event.Type.BLOCK_BREAK,blockListener, Priority.Normal, this);
 		pm.registerEvent(Event.Type.BLOCK_PLACE,blockListener, Priority.Normal, this);
 		pm.registerEvent(Event.Type.ENTITY_EXPLODE,entityListener,Priority.Normal,this);
 		pm.registerEvent(Event.Type.WORLD_LOAD, worldListener,Priority.Normal, this);
+		*/
 		if (lockedChestsSuck){
 			server.getScheduler().scheduleSyncRepeatingTask(this,chests, 100, 100);
 		}
