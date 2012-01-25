@@ -3,7 +3,7 @@
 <!DOCTYPE project [
        <!ENTITY common SYSTEM "common.xml">
 ]>
-<project name="SimpleChestLock" default="deploy">
+<project name="SimpleChestLock" default="testing">
 	<path id="class.path">
 		<fileset dir="./libs/" includes="*.jar" />
   	</path>
