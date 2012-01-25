@@ -130,39 +130,40 @@ public class SCLList implements Runnable {
 	public void suck(){
 		HashSet<UUID> sucked = new HashSet<UUID>();
 		for (SCLItem item : list.values() ){
-			Block block = item.getLocation().getBlock();
-			
-			Chunk chunk = block.getChunk();
-			if (chunk.isLoaded() && plugin.canSuck.contains(block.getType())){
-				if (block.getState() instanceof ContainerBlock){
-					ContainerBlock container = (ContainerBlock)block.getState();
-					Inventory inventory = container.getInventory();
-					if (inventory.firstEmpty() != -1){ // No sense in sucking at all if it doesn't have space to begin with!
-						ArrayList<Entity> entityList = new ArrayList<Entity>();
-						for (Chunk inChunk : getNearbyChunks(block,plugin.suckRange)){
-							for (Entity entity : inChunk.getEntities()){
-								if (entity instanceof Item && entity.getLocation().distance(block.getLocation()) <= plugin.suckRange){
-									entityList.add(entity);
+			if (!item.isLocationDeferred()){
+				Block block = item.getLocation().getBlock();
+				
+				Chunk chunk = block.getChunk();
+				if (chunk.isLoaded() && plugin.canSuck.contains(block.getType())){
+					if (block.getState() instanceof ContainerBlock){
+						ContainerBlock container = (ContainerBlock)block.getState();
+						Inventory inventory = container.getInventory();
+						if (inventory.firstEmpty() != -1){ // No sense in sucking at all if it doesn't have space to begin with!
+							ArrayList<Entity> entityList = new ArrayList<Entity>();
+							for (Chunk inChunk : getNearbyChunks(block,plugin.suckRange)){
+								for (Entity entity : inChunk.getEntities()){
+									if (entity instanceof Item && entity.getLocation().distance(block.getLocation()) <= plugin.suckRange){
+										entityList.add(entity);
+									}
 								}
 							}
-						}
-						for (Entity entity : entityList){
-							ItemStack original = ((Item)entity).getItemStack();
-							ItemStack itemFound = original.clone();
-							if ( inventory.firstEmpty() != -1 && !sucked.contains(entity.getUniqueId()) ){ 
-								inventory.addItem(itemFound);
-								entity.remove();
-								sucked.add(entity.getUniqueId());
-							}
-							else {
-								break;
+							for (Entity entity : entityList){
+								ItemStack original = ((Item)entity).getItemStack();
+								ItemStack itemFound = original.clone();
+								if ( inventory.firstEmpty() != -1 && !sucked.contains(entity.getUniqueId()) ){ 
+									inventory.addItem(itemFound);
+									entity.remove();
+									sucked.add(entity.getUniqueId());
+								}
+								else {
+									break;
+								}
 							}
 						}
 					}
 				}
 			}
 		}
-
 	}
 	public HashSet<Chunk> getNearbyChunks(Block origin,int range){
 		HashSet<Chunk> chunks = new HashSet<Chunk>();

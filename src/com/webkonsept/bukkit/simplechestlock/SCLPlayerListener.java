@@ -30,6 +30,7 @@ public class SCLPlayerListener extends PlayerListener {
 		if (event.getItem() != null){
 			toolUsed = event.getItem().getType();
 		}
+		Player player = event.getPlayer();
 		
 		if (block == null) return;  // We don't care about non-block (air) interactions.
 		if (plugin.canLock(block)){
@@ -44,7 +45,6 @@ public class SCLPlayerListener extends PlayerListener {
 					|| event.getAction().equals(Action.PHYSICAL)
 			){
 				if (plugin.chests.isLocked(block)){
-					Player player = event.getPlayer();
 					String owner = plugin.chests.getOwner(block);
 					plugin.babble(player.getName()+" wants to use "+owner+"'s "+typeName);
 					boolean ignoreOwner = plugin.permit(player, "simplechestlock.ignoreowner");
@@ -105,13 +105,20 @@ public class SCLPlayerListener extends PlayerListener {
 						}
 					}
 				}
+				else if (plugin.permit(player, "simplechestlock.limited")){
+				    plugin.babble("Player "+player.getName()+" is limited, and access to un-owned "+typeName+" was denied.");
+				    event.setCancelled(true);
+				    player.sendMessage(ChatColor.RED+"You can only open thigs that belong to you.");
+				}
+				else {
+				    plugin.babble("Access granted to unlocked "+typeName);
+				}
 			}
 			else if (event.getAction().equals(Action.LEFT_CLICK_BLOCK)){
 				ItemStack tool = event.getItem();
 				if (tool == null) return;
 				if (tool.getType().equals(plugin.key) || tool.getType().equals(plugin.comboKey)){
 					event.setCancelled(true);
-					Player player = event.getPlayer();
 					if (plugin.permit(player,"simplechestlock.lock")){
 						if (plugin.chests.isLocked(block)){
 							String owner = plugin.chests.getOwner(block);
