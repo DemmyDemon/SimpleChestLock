@@ -1,6 +1,6 @@
 name: SimpleChestLock
 main: com.webkonsept.bukkit.simplechestlock.SCL
-version: 0.14
+version: 0.15
 branch: stable
 thread: http://forums.bukkit.org/threads/SimpleChestLock.17557/
 website: http://minecraft.webkonsept.com/plugins/details/SimpleChestLock.html
@@ -72,7 +72,7 @@ permissions:
         default: false
 engines:
     craftbukkit:
-        min: 1597
-        max: 1597
+        min: 1818
+        max: 1818
 
 
