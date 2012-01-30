@@ -22,6 +22,10 @@
   			file="./src/plugin.yml"
   			tofile="./bin/plugin.yml"
   		/>
+        <copy
+            file="./src/config.yml"
+            tofile="./bin/config.yml"
+        />
     	<jar destfile="${ant.project.name}.jar"
       		basedir="./bin"
       		includes="**/*"
