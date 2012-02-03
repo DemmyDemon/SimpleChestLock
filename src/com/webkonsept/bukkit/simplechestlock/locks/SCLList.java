@@ -1,4 +1,4 @@
-package com.webkonsept.bukkit.simplechestlock;
+package com.webkonsept.bukkit.simplechestlock.locks;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -27,9 +27,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import com.webkonsept.bukkit.simplechestlock.SCL;
+
 public class SCLList implements Runnable {
 	SCL plugin;
-	HashMap<Location,SCLItem> list = new HashMap<Location,SCLItem>();
+	public HashMap<Location,SCLItem> list = new HashMap<Location,SCLItem>();
 	int key = 0;
 	HashSet<SCLItem> deferredItems = new HashSet<SCLItem>();
 	
@@ -195,6 +197,15 @@ public class SCLList implements Runnable {
 			return null;
 		}
 	}
+	public SCLItem getItem(Block block){
+	    if (block == null) return null;
+	    if (list.containsKey(block.getLocation())){
+	        return list.get(block.getLocation());
+	    }
+	    else {
+	        return null;
+	    }
+	}
 	public boolean isLocked(Block block){
 		if (block == null) return false;
 		if (list == null) return false;
@@ -234,15 +245,18 @@ public class SCLList implements Runnable {
 		if (player == null || block == null || list == null) return 0;
 		if (plugin.canLock(block)){
 			int lockedItems = 0;
+            String lockAs = player.getName();
+            if (plugin.locksAs.containsKey(lockAs)){
+                lockAs = plugin.locksAs.get(lockAs);
+            }
+            
 			if (plugin.lockpair && plugin.canDoubleLock(block)){
-				lockedItems = this.addNeighboring(block,player);
+				lockedItems = this.addNeighboring(block,lockAs);
 			}
 			else {
-				String lockAs = player.getName();
-				if (plugin.locksAs.containsKey(lockAs)){
-					lockAs = plugin.locksAs.get(lockAs);
-				}
-				list.put(block.getLocation(),new SCLItem(lockAs,block));
+				SCLItem newItem = new SCLItem(lockAs,block);
+				newItem.setTrusted(plugin.trustHandler.getTrustees(lockAs));
+				list.put(block.getLocation(),newItem);
 				lockedItems = 1;
 			}
 			save("Chests.txt");
@@ -256,15 +270,17 @@ public class SCLList implements Runnable {
 		if (player == null || block == null || list == null || combo.length != 3) return 0;
 		if (plugin.canLock(block)){
 			int lockedItems = 0;
+            String lockAs = player.getName();
+            if (plugin.locksAs.containsKey(lockAs)){
+                lockAs = plugin.locksAs.get(lockAs);
+            }
 			if (plugin.lockpair && plugin.canDoubleLock(block)){
-				lockedItems = this.addNeighboring(block, player,combo);
+				lockedItems = this.addNeighboring(block,lockAs,combo);
 			}
 			else {
-				String lockAs = player.getName();
-				if (plugin.locksAs.containsKey(lockAs)){
-					lockAs = plugin.locksAs.get(lockAs);
-				}
-				list.put(block.getLocation(),new SCLItem(lockAs,block,combo));
+				SCLItem newItem = new SCLItem(lockAs,block,combo);
+				newItem.setTrusted(plugin.trustHandler.getTrustees(lockAs));
+				list.put(block.getLocation(),newItem);
 				lockedItems = 1;
 			}
 			return lockedItems;
@@ -304,7 +320,7 @@ public class SCLList implements Runnable {
 		}
 		return 0;
 	}
-	protected HashSet<Block> getNeighbours (Block block) {
+	public HashSet<Block> getNeighbours (Block block) {
 		HashSet<Block> neighbours = new HashSet<Block>();
 		neighbours.add(block);
 		neighbours.add(block.getRelative(BlockFace.NORTH));
@@ -346,28 +362,22 @@ public class SCLList implements Runnable {
 		}
 		return additionalUnlocked;
 	}
-	private Integer addNeighboring (Block block,Player owner,DyeColor[] combo) {
+	private Integer addNeighboring (Block block,String ownerName,DyeColor[] combo) {
 		Integer additionalItemsLocked = 0;
-		String ownerName = owner.getName();
-		if (plugin.locksAs.containsKey(ownerName)){
-			ownerName = plugin.locksAs.get(ownerName);
-			plugin.babble("Locking as "+ownerName);
-		}
 		for (Block currentNeighbour : this.getNeighbours(block)){
 			if (currentNeighbour.getType().equals(block.getType())){
-				list.put(currentNeighbour.getLocation(), new SCLItem(ownerName,currentNeighbour,combo));
+			    SCLItem newItem = new SCLItem(ownerName,currentNeighbour,combo);
+			    newItem.setTrusted(plugin.trustHandler.getTrustees(ownerName));
+				list.put(currentNeighbour.getLocation(),newItem);
 				plugin.babble("ComboLocked a block by association");
 				additionalItemsLocked++;
 			}
 		}
 		return additionalItemsLocked;
 	}
-	private Integer addNeighboring (Block block,Player owner) {
+	private Integer addNeighboring (Block block,String ownerName) {
 		Integer additionalItemsLocked = 0;
-		String ownerName = owner.getName();
-		if (plugin.locksAs.containsKey(ownerName)){
-			ownerName = plugin.locksAs.get(ownerName);
-		}
+
 		for (Block currentNeighbour : this.getNeighbours(block)){
 			if (currentNeighbour.getType().equals(block.getType())){
 				if (list.containsKey(currentNeighbour.getLocation())){
@@ -375,7 +385,9 @@ public class SCLList implements Runnable {
 				}
 				else {
 					plugin.babble("Locking "+currentNeighbour.getType().toString().toLowerCase()+" at "+currentNeighbour.getLocation().toString());
-					list.put(currentNeighbour.getLocation(), new SCLItem(ownerName,currentNeighbour));
+					SCLItem newItem = new SCLItem(ownerName,currentNeighbour);
+	                newItem.setTrusted(plugin.trustHandler.getTrustees(ownerName));
+					list.put(currentNeighbour.getLocation(), newItem);
 					additionalItemsLocked++;
 				}
 			}

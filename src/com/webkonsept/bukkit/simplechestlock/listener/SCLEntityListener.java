@@ -1,9 +1,11 @@
-package com.webkonsept.bukkit.simplechestlock;
+package com.webkonsept.bukkit.simplechestlock.listener;
 
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityExplodeEvent;
+
+import com.webkonsept.bukkit.simplechestlock.SCL;
 
 public class SCLEntityListener implements Listener {
 	SCL plugin;

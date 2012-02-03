@@ -1,6 +1,8 @@
-package com.webkonsept.bukkit.simplechestlock;
+package com.webkonsept.bukkit.simplechestlock.locks;
 
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.HashSet;
 
 import org.bukkit.Bukkit;
 import org.bukkit.DyeColor;
@@ -9,6 +11,8 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+
+import com.webkonsept.bukkit.simplechestlock.SCL;
 
 public class SCLItem {
 
@@ -20,57 +24,50 @@ public class SCLItem {
 	private String split = ",";
 	private boolean comboLocked = false;
 	private DyeColor combo[] = {DyeColor.WHITE,DyeColor.WHITE,DyeColor.WHITE};
-	
-	private int correctLength = 9;
+	private HashSet<String> trusted = new HashSet<String>();
 	
 	SCLItem (SCL plugin,String line) throws ParseException {
-		String[] elements = line.split(split,9);
-		String playerName = "???";
-		try {
-			playerName = elements[0];
-		}
-		catch(ArrayIndexOutOfBoundsException e){
-			throw new ParseException("Completely misshaped chestfile line: "+line,0);
-		}
+	    SCLLine lockdef = new SCLLine(line);
+	    
+		String playerName = lockdef.owner;
 		
 		Double X = null;
 		Double Y = null;
 		Double Z = null;
 		World world = null;
-		if (elements.length == correctLength){ // That is, if it's the new format with the combo;
-			this.owner = playerName;
-			this.worldName = elements[1];
-			
-			world = Bukkit.getServer().getWorld(elements[1]);
-			try {
-				X = Double.parseDouble(elements[2]);
-				Y = Double.parseDouble(elements[3]);
-				Z = Double.parseDouble(elements[4]);
-			}
-			catch(NumberFormatException e){
-				throw new ParseException("I got an unparsable number from the chest file: "+e.getMessage(),0);
-			}
-			comboLocked = Boolean.valueOf(elements[5]);
-			DyeColor tumbler1 = DyeColor.valueOf(elements[6]);
-			DyeColor tumbler2 = DyeColor.valueOf(elements[7]);
-			DyeColor tumbler3 = DyeColor.valueOf(elements[8]);
-			if (tumbler1 == null){
-				throw new ParseException("First DyeColor, "+elements[6]+", does not make sense.",0);
-			}
-			else if (tumbler2 == null){
-				throw new ParseException("Second DyeColor, "+elements[7]+", does not make sense.",0);
-			}
-			else if (tumbler3 == null){
-				throw new ParseException("Third DyeColor, "+elements[8]+", does not make sense.",0);
-			}
-			else {
-				combo[0] = tumbler1;
-				combo[1] = tumbler2;
-				combo[2] = tumbler3;
-			}
+		
+		this.owner = playerName;
+		this.worldName = lockdef.worldName;
+		
+		world = Bukkit.getServer().getWorld(lockdef.worldName);
+		try {
+			X = Double.parseDouble(lockdef.X);
+			Y = Double.parseDouble(lockdef.Y);
+			Z = Double.parseDouble(lockdef.Z);
+		}
+		catch(NumberFormatException e){
+			throw new ParseException("I got an unparsable number from the chest file: "+e.getMessage(),0);
+		}
+		comboLocked = Boolean.valueOf(lockdef.comboLocked);
+		DyeColor tumbler1 = DyeColor.valueOf(lockdef.combo[0]);
+		DyeColor tumbler2 = DyeColor.valueOf(lockdef.combo[1]);
+		DyeColor tumbler3 = DyeColor.valueOf(lockdef.combo[2]);
+		
+		trusted = lockdef.trusted;
+		
+		if (tumbler1 == null){
+			throw new ParseException("First DyeColor, "+lockdef.combo[0]+", does not make sense.",0);
+		}
+		else if (tumbler2 == null){
+			throw new ParseException("Second DyeColor, "+lockdef.combo[1]+", does not make sense.",0);
+		}
+		else if (tumbler3 == null){
+			throw new ParseException("Third DyeColor, "+lockdef.combo[2]+", does not make sense.",0);
 		}
 		else {
-			throw new ParseException("Invalid number of fields in Chestfile line: "+elements.length+" elements in "+line, 0);
+			combo[0] = tumbler1;
+			combo[1] = tumbler2;
+			combo[2] = tumbler3;
 		}
 		
 		if (world != null && X != null && Y != null && Z != null){
@@ -88,8 +85,8 @@ public class SCLItem {
 		}
 		else if (world == null && X != null && Y != null && Z != null){
 			isLocationDeferred = true;
-			plugin.babble("World '"+elements[1]+"' isn't loaded yet.  Will defer loading to later.");
-			deferredLocation = elements[1]+split+elements[2]+split+elements[3]+split+elements[4];
+			plugin.babble("World '"+lockdef.worldName+"' isn't loaded yet.  Will defer loading to the world load event.");
+			deferredLocation = lockdef.worldName+split+lockdef.X+split+lockdef.Y+split+lockdef.Z;
 		}
 		else {
 			throw new ParseException("Unknown error in chestfile:  Player("+playerName+") World("+world+") X("+X+") Y("+Y+") Z("+Z+")",0);
@@ -122,6 +119,43 @@ public class SCLItem {
 			combo = comboArray;
 			comboLocked = true;
 		}
+	}
+	public boolean trusts(Player player){
+	    String playerName = player.getName();
+	    if (playerName.equals(owner)){
+	        return true;
+	    }
+	    else if (trusted != null && trusted.contains("*")){
+	        return true;
+	    }
+	    else if (trusted != null && trusted.contains(playerName.toLowerCase())){
+	        return true;
+	    }
+	    else {
+	        return false;
+	    }
+	}
+	public void setTrusted(HashSet<String> trusts){
+	    this.trusted = trusts;
+	}
+	public String trustedNames (){
+	   StringBuilder sb = new StringBuilder();
+       if (this.trusted != null){
+           for (String trustedPlayer : this.trusted){
+                sb.append(" ");
+                sb.append(trustedPlayer);
+           }
+           return sb.toString();
+       }
+       else {
+           return null;
+       }
+	}
+	public String shift(ArrayList<String> list){
+	    String str = list.get(0);
+	    list.remove(0);
+	    return str;
+	    
 	}
 	public boolean retryLocation(SCL plugin) throws ParseException {
 		if (!isLocationDeferred){
@@ -189,6 +223,13 @@ public class SCLItem {
 		for (DyeColor tumbler : combo){
 			sb.append(split);
 			sb.append(tumbler.toString());
+		}
+		
+		if (this.trusted != null){
+		    for (String trustedPlayer : this.trusted){
+		        sb.append(split);
+		        sb.append(trustedPlayer);
+		    }
 		}
 		
 		return sb.toString();

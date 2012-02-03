@@ -19,16 +19,25 @@ import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.webkonsept.bukkit.simplechestlock.listener.SCLBlockListener;
+import com.webkonsept.bukkit.simplechestlock.listener.SCLEntityListener;
+import com.webkonsept.bukkit.simplechestlock.listener.SCLPlayerListener;
+import com.webkonsept.bukkit.simplechestlock.listener.SCLWorldListener;
+import com.webkonsept.bukkit.simplechestlock.locks.SCLItem;
+import com.webkonsept.bukkit.simplechestlock.locks.SCLList;
+import com.webkonsept.bukkit.simplechestlock.locks.TrustHandler;
+
 public class SCL extends JavaPlugin {
 	private Logger log = Logger.getLogger("Minecraft");
 	protected boolean verbose = false;
-	protected boolean lockpair = true;
-	protected Material key = Material.STICK;
-	protected Material comboKey = Material.BONE;
-	protected boolean openMessage = true;
-	protected boolean usePermissionsWhitelist = false;
-	protected boolean lockedChestsSuck = false;
-	protected int suckRange = 3;
+	public boolean lockpair = true;
+	public Material key = Material.STICK;
+	public Material comboKey = Material.BONE;
+	public boolean openMessage = true;
+	public boolean usePermissionsWhitelist = false;
+	public boolean lockedChestsSuck = false;
+	public int suckRange = 3;
+	public TrustHandler trustHandler;
 	
 	protected Server server = null;
 	
@@ -51,7 +60,7 @@ public class SCL extends JavaPlugin {
 	private final SCLBlockListener 	blockListener 	= new SCLBlockListener(this);
 	private final SCLEntityListener 	entityListener 	= new SCLEntityListener(this);
 	private final SCLWorldListener	worldListener	= new SCLWorldListener(this);
-	protected SCLList			chests			= new SCLList(this);
+	public SCLList			chests			= new SCLList(this);
 	
 	@Override
 	public void onDisable() {
@@ -63,6 +72,7 @@ public class SCL extends JavaPlugin {
 	@Override
 	public void onEnable() {
 		setupLockables();
+		trustHandler = new TrustHandler(this);
 		loadConfig();
 		server = getServer();
 		chests.load("Chests.txt");
@@ -197,6 +207,14 @@ public class SCL extends JavaPlugin {
 						}
 						sender.sendMessage("Total: "+total);
 					}
+				}
+				else if (args[0].equalsIgnoreCase("trust")){
+				    if (isPlayer){
+				        if (this.permit(player,"simplechestlock.command.trust")){
+				            trustHandler.parseCommand(player,args);
+				        }
+				    }
+				    success = true;
 				}
 				else if (args[0].equalsIgnoreCase("list")){
 					success = true;
@@ -373,6 +391,9 @@ public class SCL extends JavaPlugin {
 				e.printStackTrace();
 				this.crap("IOError while creating config file: "+e.getMessage());
 			}
+		}
+		if (trustHandler != null){
+		    trustHandler.loadFromConfig();
 		}
 	}
 }

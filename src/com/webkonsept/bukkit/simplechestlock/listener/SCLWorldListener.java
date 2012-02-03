@@ -1,8 +1,10 @@
-package com.webkonsept.bukkit.simplechestlock;
+package com.webkonsept.bukkit.simplechestlock.listener;
 
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.world.WorldLoadEvent;
+
+import com.webkonsept.bukkit.simplechestlock.SCL;
 
 public class SCLWorldListener implements Listener {
 	SCL plugin;
