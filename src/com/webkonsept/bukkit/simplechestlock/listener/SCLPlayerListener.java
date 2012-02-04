@@ -118,7 +118,7 @@ public class SCLPlayerListener implements Listener {
 						}
 					}
 				}
-				else if (plugin.permit(player, "simplechestlock.limited")){
+				else if (plugin.permit(player, "simplechestlock.limited") && !plugin.permit(player, "simplechestlock.ignoreowner")){
 				    plugin.babble("Player "+player.getName()+" is limited, and access to un-owned "+typeName+" was denied.");
 				    event.setCancelled(true);
 				    player.sendMessage(ChatColor.RED+"You can only open thigs that belong to you.");
