@@ -37,6 +37,7 @@ permissions:
             simplechestlock.command.status: true
             simplechestlock.command.list: true
             simplechestlock.command.as: true
+            simplechestlock.command.trust: true
     simplechestlock.command.reload:
         description: Access to /scl reload
         default: op
@@ -51,6 +52,9 @@ permissions:
         default: op
     simplechestlock.command.as:
         description: Access to /scl as <name>
+        default: op
+    simplechestlock.command.trust:
+        description: Trust system access
         default: op
     simplechestlock.ignoreowner:
         description: Unlock any item, use any item.
@@ -73,6 +77,6 @@ permissions:
 engines:
     craftbukkit:
         min: 1818
-        max: 1818
+        max: 1846
 
 
