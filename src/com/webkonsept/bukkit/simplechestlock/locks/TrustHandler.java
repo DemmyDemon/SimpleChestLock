@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.bukkit.ChatColor;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
 import com.webkonsept.bukkit.simplechestlock.SCL;
@@ -33,17 +34,20 @@ public class TrustHandler {
     }
     public void loadFromConfig(){
         plugin.babble("Loading trust relations from config");
-        Set<String> people = plugin.getConfig().getConfigurationSection("trust").getKeys(false);
-        plugin.babble(people.size()+" people have registered trust");
-        for (String truster : people){
-            plugin.babble("Parsing truster "+truster);
-            List<String> trustedDudes = plugin.getConfig().getStringList("trust."+truster);
-            HashSet<String> trustees = new HashSet<String>();
-            for (String trustee : trustedDudes){
-                plugin.babble("   -> "+trustee);
-                trustees.add(trustee);
+        ConfigurationSection trustSection =  plugin.getConfig().getConfigurationSection("trust");
+        if (trustSection != null){
+            Set<String> people = trustSection.getKeys(false);
+            plugin.babble(people.size()+" people have registered trust");
+            for (String truster : people){
+                plugin.babble("Parsing truster "+truster);
+                List<String> trustedDudes = plugin.getConfig().getStringList("trust."+truster);
+                HashSet<String> trustees = new HashSet<String>();
+                for (String trustee : trustedDudes){
+                    plugin.babble("   -> "+trustee);
+                    trustees.add(trustee);
+                }
+                trust.put(truster,trustees);
             }
-            trust.put(truster,trustees);
         }
     }
     

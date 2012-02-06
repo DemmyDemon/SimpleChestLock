@@ -1,5 +1,5 @@
 usePermissionsWhitelist: false
-lockpair: false
+lockpair: true
 lockedChestsSuck: false
 verbose: false
 comboKey: 352
