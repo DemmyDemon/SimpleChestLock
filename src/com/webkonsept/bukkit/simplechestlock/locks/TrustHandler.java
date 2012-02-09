@@ -51,8 +51,19 @@ public class TrustHandler {
         }
     }
     
-    public HashSet<String> getTrustees(String playerName){
-        return trust.get(playerName.toLowerCase());
+    public HashSet<String> getTrusteesCopy(String playerName){
+        HashSet<String> original = trust.get(playerName.toLowerCase());
+        HashSet<String> safeCopy = new HashSet<String>();
+        /*
+         * Why not just .clone?  Because it's an "Unsafe cast".  It really isn't but whatever.
+         * Doing it this way is O(n), doing .clone is likely O(n) as well.  Haven't checked.
+         * What are the odds a trust list is long enough for anyone to notice?
+         * Still:  TODO check for faster way to do this, out of principle.
+         */
+        for (String trusted : original){
+            safeCopy.add(trusted);
+        }
+        return safeCopy;
     }
     public void addTrust (String truster,String trustee){
         if (trust.containsKey(truster.toLowerCase())){

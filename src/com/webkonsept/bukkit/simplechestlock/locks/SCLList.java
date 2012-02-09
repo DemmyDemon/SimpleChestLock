@@ -255,7 +255,7 @@ public class SCLList implements Runnable {
 			}
 			else {
 				SCLItem newItem = new SCLItem(lockAs,block);
-				newItem.setTrusted(plugin.trustHandler.getTrustees(lockAs));
+				newItem.setTrusted(plugin.trustHandler.getTrusteesCopy(lockAs));
 				list.put(block.getLocation(),newItem);
 				lockedItems = 1;
 			}
@@ -279,7 +279,7 @@ public class SCLList implements Runnable {
 			}
 			else {
 				SCLItem newItem = new SCLItem(lockAs,block,combo);
-				newItem.setTrusted(plugin.trustHandler.getTrustees(lockAs));
+				newItem.setTrusted(plugin.trustHandler.getTrusteesCopy(lockAs));
 				list.put(block.getLocation(),newItem);
 				lockedItems = 1;
 			}
@@ -367,7 +367,7 @@ public class SCLList implements Runnable {
 		for (Block currentNeighbour : this.getNeighbours(block)){
 			if (currentNeighbour.getType().equals(block.getType())){
 			    SCLItem newItem = new SCLItem(ownerName,currentNeighbour,combo);
-			    newItem.setTrusted(plugin.trustHandler.getTrustees(ownerName));
+			    newItem.setTrusted(plugin.trustHandler.getTrusteesCopy(ownerName));
 				list.put(currentNeighbour.getLocation(),newItem);
 				plugin.babble("ComboLocked a block by association");
 				additionalItemsLocked++;
@@ -386,7 +386,7 @@ public class SCLList implements Runnable {
 				else {
 					plugin.babble("Locking "+currentNeighbour.getType().toString().toLowerCase()+" at "+currentNeighbour.getLocation().toString());
 					SCLItem newItem = new SCLItem(ownerName,currentNeighbour);
-	                newItem.setTrusted(plugin.trustHandler.getTrustees(ownerName));
+	                newItem.setTrusted(plugin.trustHandler.getTrusteesCopy(ownerName));
 					list.put(currentNeighbour.getLocation(), newItem);
 					additionalItemsLocked++;
 				}
