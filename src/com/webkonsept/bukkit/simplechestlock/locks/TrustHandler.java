@@ -54,6 +54,11 @@ public class TrustHandler {
     public HashSet<String> getTrusteesCopy(String playerName){
         HashSet<String> original = trust.get(playerName.toLowerCase());
         HashSet<String> safeCopy = new HashSet<String>();
+        
+        if (original == null){
+            return safeCopy; // Still empty, player trusts noone!
+        }
+        
         /*
          * Why not just .clone?  Because it's an "Unsafe cast".  It really isn't but whatever.
          * Doing it this way is O(n), doing .clone is likely O(n) as well.  Haven't checked.
