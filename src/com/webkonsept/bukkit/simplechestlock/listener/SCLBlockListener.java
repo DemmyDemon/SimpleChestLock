@@ -30,7 +30,7 @@ public class SCLBlockListener implements Listener {
 			Player player = event.getPlayer();
 			String owner = plugin.chests.getOwner(block);
 			if (owner != player.getName() && ! plugin.permit(player,"simplechestlock.ignoreowner")){
-				player.sendMessage(ChatColor.RED+"You can't break "+owner+"'s block!");
+				plugin.messaging.throttledMessage(player,ChatColor.RED+"You can't break "+owner+"'s block!");
 				event.setCancelled(true);
 			}
 			else {

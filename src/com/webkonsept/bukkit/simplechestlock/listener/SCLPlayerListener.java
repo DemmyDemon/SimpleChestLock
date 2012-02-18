@@ -78,27 +78,27 @@ public class SCLPlayerListener implements Listener {
 							DyeColor[] combo = {tumbler1,tumbler2,tumbler3};
 							if (!lockedItem.correctCombo(combo)){
 								plugin.babble(player.getName()+" provided the wrong combo for "+owner+"'s "+typeName);
-								player.sendMessage(ChatColor.RED+owner+"'s "+typeName+" has a different combination...");
+								plugin.messaging.throttledMessage(player,ChatColor.RED+owner+"'s "+typeName+" has a different combination...");
 								event.setCancelled(true);
 							}
 						}
 						else {
 							plugin.babble(player.getName()+" provided no combo for "+owner+"'s "+typeName);
-							player.sendMessage(ChatColor.RED+owner+"'s "+typeName+" is locked with a combination lock.");
+							plugin.messaging.throttledMessage(player,ChatColor.RED+owner+"'s "+typeName+" is locked with a combination lock.");
 							event.setCancelled(true);
 						}
 					}
 					else if (! owner.equalsIgnoreCase(player.getName()) && lockedItem.trusts(player)){
-					    player.sendMessage(ChatColor.GREEN+owner+" trusts you with access to this "+typeName);
+					    plugin.messaging.throttledMessage(player,ChatColor.GREEN+owner+" trusts you with access to this "+typeName);
 					}
 					else if (! owner.equalsIgnoreCase(player.getName()) && ! ignoreOwner){
 						event.setCancelled(true);
-						player.sendMessage(ChatColor.RED+"Access denied to "+owner+"'s "+typeName);
+						plugin.messaging.throttledMessage(player,ChatColor.RED+"Access denied to "+owner+"'s "+typeName);
 					}
 					else if (! owner.equalsIgnoreCase(player.getName()) && ignoreOwner){
 						plugin.babble(player.getName()+" was let into "+owner+"'s "+typeName+", ignoring owner.");
 						if (plugin.openMessage){
-							player.sendMessage(ChatColor.GREEN+"Access granted to "+owner+"'s "+typeName);
+						    plugin.messaging.throttledMessage(player,ChatColor.GREEN+"Access granted to "+owner+"'s "+typeName);
 						}
 					}
 					else {

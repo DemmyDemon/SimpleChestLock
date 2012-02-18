@@ -39,6 +39,8 @@ public class SCL extends JavaPlugin {
 	public int suckRange = 3;
 	public TrustHandler trustHandler;
 	
+	public Messaging messaging = new Messaging(this,3000);
+	
 	protected Server server = null;
 	
 	// Intended to hold the material in question and a boolean of weather or not it's double-lockable (like a double chest)
