@@ -48,6 +48,12 @@
 			tofile="C:/Users/Fredrik/Desktop/Minecraft/Server/plugins/${ant.project.name}.jar"
 		/>
 	</target>
+	<target name="laptop" depends="clean,jar">
+		<copy
+			file="${ant.project.name}.jar"
+			tofile="/home/fvold/bukkit/plugins/${ant.project.name}.jar"
+		/>
+	</target>
 	<target name="publish" depends="clean,jar">
 		<copy
 		  file="${ant.project.name}.jar"
