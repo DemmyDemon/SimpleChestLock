@@ -344,10 +344,11 @@ public class SCL extends JavaPlugin {
 				put("verbose",false);
 				put("key",280);
 				put("comboKey",352);
-				put("lockpair",false);
+				put("lockpair",true);
 				put("usePermissionsWhitelist",false);
 				put("lockedChestsSuck",false);
 				put("suckRange",3);
+				put("openMessage",true);
 			}
 		});
 		

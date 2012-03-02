@@ -20,7 +20,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.ContainerBlock;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
@@ -137,8 +137,8 @@ public class SCLList implements Runnable {
 				
 				Chunk chunk = block.getChunk();
 				if (chunk.isLoaded() && plugin.canSuck.contains(block.getType())){
-					if (block.getState() instanceof ContainerBlock){
-						ContainerBlock container = (ContainerBlock)block.getState();
+					if (block.getState() instanceof InventoryHolder){
+					    InventoryHolder container = (InventoryHolder)block.getState();
 						Inventory inventory = container.getInventory();
 						if (inventory.firstEmpty() != -1){ // No sense in sucking at all if it doesn't have space to begin with!
 							ArrayList<Entity> entityList = new ArrayList<Entity>();

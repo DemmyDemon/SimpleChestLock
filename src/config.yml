@@ -5,3 +5,4 @@ verbose: false
 comboKey: 352
 suckRange: 3
 key: 280
+openMessage: true
