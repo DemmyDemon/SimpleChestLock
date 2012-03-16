@@ -246,6 +246,9 @@ public class SCLItem {
 	public boolean isComboLocked(){
 		return comboLocked;
 	}
+	public void setComboLocked(boolean locked){
+	    this.comboLocked = locked;
+	}
 	public DyeColor[] getCombo(){
 		return combo;
 	}

@@ -1,6 +1,6 @@
 name: SimpleChestLock
 main: com.webkonsept.bukkit.simplechestlock.SCL
-version: 0.16
+version: 0.18
 branch: stable
 thread: http://forums.bukkit.org/threads/SimpleChestLock.17557/
 website: http://minecraft.webkonsept.com/plugins/details/SimpleChestLock.html
@@ -9,7 +9,7 @@ database: false
 commands:
     scl:
         description:  Interact with SimpleChestLock
-        usage: /<command> [save|reload|status|as|trust]
+        usage: /<command> [save|reload|status|as|trust|getkey|getcombokey]
 generators: [bukget]
 categories: [ SEC, MECH ]
 description: Gives players the ability to lock chests and other blocks.
@@ -35,6 +35,8 @@ permissions:
             simplechestlock.command.list: true
             simplechestlock.command.as: true
             simplechestlock.command.trust: true
+            simplechestlock.command.getkey: true
+            simplechestlock.command.getcombokey: true
     simplechestlock.command.reload:
         description: Access to /scl reload
         default: op
@@ -53,15 +55,18 @@ permissions:
     simplechestlock.command.trust:
         description: Trust system access
         default: op
+    simplechestlock.command.getkey:
+        description: Access to getting the currently configured key item
+        default: op
+    simplechestlock.command.getcombokey:
+        description: Access to getting the currently configured COMBO key item
+        default: op
     simplechestlock.ignoreowner:
         description: Unlock any item, use any item.
         default: op
     simplechestlock.lock:
         description: Access to locking items
         default: op
-    simplechestlock.limited:
-        description: Hindered access to all but items locked in your name
-        default: false
     simplechestlock.usecombo:
         description: Access to locking with a combination lock
         default: op

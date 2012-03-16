@@ -54,6 +54,12 @@
 			tofile="/home/fvold/bukkit/plugins/${ant.project.name}.jar"
 		/>
 	</target>
+	<target name="beta" depends="clean,jar">
+		<copy
+		  file="${ant.project.name}.jar"
+		  tofile="W:/publish/beta/${ant.project.name}.jar"
+		/>
+	</target>
 	<target name="publish" depends="clean,jar">
 		<copy
 		  file="${ant.project.name}.jar"

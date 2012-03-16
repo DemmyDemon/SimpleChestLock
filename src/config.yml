@@ -2,7 +2,14 @@ usePermissionsWhitelist: false
 lockpair: true
 lockedChestsSuck: false
 verbose: false
-comboKey: 352
-suckRange: 3
 key: 280
+keyDurability: 0
+comboKey: 352
+comboKeyDurability: 0
+useKeyDurability: false
+suckRange: 3
 openMessage: true
+useLimits: false
+lockLimits:
+    example: 10
+    anotherexample: 20

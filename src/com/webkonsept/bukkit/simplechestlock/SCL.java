@@ -15,6 +15,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -23,6 +24,7 @@ import com.webkonsept.bukkit.simplechestlock.listener.SCLBlockListener;
 import com.webkonsept.bukkit.simplechestlock.listener.SCLEntityListener;
 import com.webkonsept.bukkit.simplechestlock.listener.SCLPlayerListener;
 import com.webkonsept.bukkit.simplechestlock.listener.SCLWorldListener;
+import com.webkonsept.bukkit.simplechestlock.locks.LimitHandler;
 import com.webkonsept.bukkit.simplechestlock.locks.SCLItem;
 import com.webkonsept.bukkit.simplechestlock.locks.SCLList;
 import com.webkonsept.bukkit.simplechestlock.locks.TrustHandler;
@@ -31,13 +33,16 @@ public class SCL extends JavaPlugin {
 	private Logger log = Logger.getLogger("Minecraft");
 	protected boolean verbose = false;
 	public boolean lockpair = true;
-	public Material key = Material.STICK;
-	public Material comboKey = Material.BONE;
+	public ItemStack key;
+	public ItemStack comboKey;
+	public boolean useKeyData = false;
 	public boolean openMessage = true;
 	public boolean usePermissionsWhitelist = false;
 	public boolean lockedChestsSuck = false;
 	public int suckRange = 3;
 	public TrustHandler trustHandler;
+	public LimitHandler limitHandler;
+	public boolean useLimits = false;
 	
 	public Messaging messaging = new Messaging(this,3000);
 	
@@ -75,6 +80,7 @@ public class SCL extends JavaPlugin {
 	public void onEnable() {
 		setupLockables();
 		trustHandler = new TrustHandler(this);
+		limitHandler = new LimitHandler(this);
 		loadConfig();
 		server = getServer();
 		chests.load("Chests.txt");
@@ -184,6 +190,21 @@ public class SCL extends JavaPlugin {
 						sender.sendMessage(ChatColor.RED+"[SimpleChestLock] Sorry, permission denied!");
 					}
 				}
+				else if (args[0].equalsIgnoreCase("limit")){
+				    success = true;
+				    if (!isPlayer){
+				        sender.sendMessage("Mr. Console, you can't lock anything at all, so your limit is -1!");
+				    }
+				    else if (!useLimits){
+				        sender.sendMessage(ChatColor.GOLD+"This server has no lock limits");
+				    }
+				    else if (permit(player,"simplechestlock.nolimit")){
+				        sender.sendMessage(ChatColor.GOLD+"You are excempt from lock limits");
+				    }
+				    else {
+				        sender.sendMessage(ChatColor.GREEN+limitHandler.usedString(player));
+				    }
+				}
 				else if (args[0].equalsIgnoreCase("status")){
 					success = true;
 					if (!isPlayer || this.permit(player,"simplechestlock.command.status")){
@@ -225,6 +246,36 @@ public class SCL extends JavaPlugin {
 							sender.sendMessage(item.getLocation().toString());
 						}
 					}
+				}
+				else if (args[0].equalsIgnoreCase("getkey")){
+				    success = true;
+				    if (isPlayer){
+				        if (this.permit(player,"simplechestlock.command.getkey")){
+				            player.getInventory().addItem(key.clone());
+				            player.sendMessage(ChatColor.GREEN+"One key coming right up!");
+				        }
+				        else {
+				            player.sendMessage(ChatColor.RED+"Access denied");
+				        }
+				    }
+				    else {
+				        sender.sendMessage("Sorry, Mr. Console, you can't carry keys.");
+				    }
+				}
+				else if (args[0].equalsIgnoreCase("getcombokey")){
+				    success = true;
+                    if (isPlayer){
+                        if (this.permit(player,"simplechestlock.command.getcombokey")){
+                            player.getInventory().addItem(comboKey.clone());
+                            player.sendMessage(ChatColor.GREEN+"One combokey coming right up!");
+                        }
+                        else {
+                            player.sendMessage(ChatColor.RED+"Access denied");
+                        }
+                    }
+                    else {
+                        sender.sendMessage("Sorry, Mr. Console, you can't carry keys.");
+                    }				    
 				}
 			}
 		}
@@ -342,13 +393,19 @@ public class SCL extends JavaPlugin {
 			private static final long serialVersionUID = 1L;// So shut up, Java.
 			{
 				put("verbose",false);
+				put("useLimits",false);
 				put("key",280);
+				put("keyDurability",0);
 				put("comboKey",352);
+				put("comboKeyDurability",0);
+				put("useKeyDurability",false);
+				
 				put("lockpair",true);
 				put("usePermissionsWhitelist",false);
 				put("lockedChestsSuck",false);
 				put("suckRange",3);
 				put("openMessage",true);
+				
 			}
 		});
 		
@@ -369,34 +426,74 @@ public class SCL extends JavaPlugin {
 			oldConfigFile.delete();
 		}
 		verbose = getConfig().getBoolean("verbose", false);
+	    lockpair = getConfig().getBoolean("lockpair", true);
+	    usePermissionsWhitelist = getConfig().getBoolean("usePermissionsWhitelist",false);
+	    openMessage = getConfig().getBoolean("openMessage", true);
+	    
+	    useLimits = getConfig().getBoolean("useLimits",false);
+		
 		Integer keyInt = getConfig().getInt("key",280); // Stick
+		Integer keyDurability = getConfig().getInt("keyDurability",0);
 		Integer comboKeyInt = getConfig().getInt("comboKey",352); // Bone
-		lockpair = getConfig().getBoolean("lockpair", true);
-		usePermissionsWhitelist = getConfig().getBoolean("usePermissionsWhitelist",false);
-		openMessage = getConfig().getBoolean("openMessage", true);
+		Integer comboKeyDurability = getConfig().getInt("comboKeyDurability",0);
+		useKeyData = getConfig().getBoolean("useKeyDurability",false);
+		
 		lockedChestsSuck = getConfig().getBoolean("lockedChestsSuck",false);
 		suckRange = getConfig().getInt("suckRange",3);
-		key = Material.getMaterial(keyInt);
-		comboKey = Material.getMaterial(comboKeyInt);
-		if (key == null){
-			key = Material.STICK;
+		
+		Material keyMaterial = Material.getMaterial(keyInt);
+		Material comboKeyMaterial = Material.getMaterial(comboKeyInt);
+		if (keyMaterial == null){
+			keyMaterial = Material.STICK;
+			useKeyData = false;
 			this.crap("OY!  Material ID "+keyInt+" is not a real material.  Falling back to using STICK (ID 280) for the key.");
 		}
-		if (comboKey == null){
-			comboKey = Material.BONE;
+		if (comboKeyMaterial == null){
+			comboKeyMaterial = Material.BONE;
+			useKeyData = false;
 			this.crap("OY!  Materail ID "+comboKeyInt+" is not a real material. Falling back to using BONE (ID 352) for the combo key.");
 		}
 		
+		key = new ItemStack(keyMaterial);
+		key.setAmount(1);
+		comboKey = new ItemStack(comboKeyMaterial);
+		comboKey.setAmount(1);
+		
+		if (useKeyData){
+		    key.setDurability((short)(int)keyDurability);
+		    comboKey.setDurability((short)(int)comboKeyDurability);
+		}
+		
 		if (!configFile.exists()){
+		    saveConfig();
+		    /*
 			try {
 				getConfig().save(configFile);
 			} catch (IOException e) {
 				e.printStackTrace();
 				this.crap("IOError while creating config file: "+e.getMessage());
 			}
+			*/
 		}
 		if (trustHandler != null){
 		    trustHandler.loadFromConfig();
 		}
+		if (limitHandler != null){
+		    limitHandler.loadFromConfig();
+		}
+	}
+	public boolean toolMatch (ItemStack candidate1,ItemStack candidate2){
+	    if (candidate1 == null || candidate2 == null){
+	        return false;
+	    }
+	    else if (
+	            candidate1.getType().equals(candidate2.getType())
+	            && candidate1.getData().equals(candidate2.getData())
+	    ){
+	        return true;
+	    }
+	    else {
+	        return false;
+	    }
 	}
 }

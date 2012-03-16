@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.DyeColor;
 import org.bukkit.Location;
@@ -242,52 +243,49 @@ public class SCLList implements Runnable {
 		}
 	}
 	public Integer lock(Player player,Block block){
-		if (player == null || block == null || list == null) return 0;
-		if (plugin.canLock(block)){
-			int lockedItems = 0;
+	    return lock(player,block,null);
+    }
+	public Integer lock(Player player,Block block,DyeColor[] combo){
+		if (player == null || block == null || list == null ) return 0;
+        if (plugin.canLock(block)){
+            
             String lockAs = player.getName();
             if (plugin.locksAs.containsKey(lockAs)){
                 lockAs = plugin.locksAs.get(lockAs);
             }
             
-			if (plugin.lockpair && plugin.canDoubleLock(block)){
-				lockedItems = this.addNeighboring(block,lockAs);
-			}
-			else {
-				SCLItem newItem = new SCLItem(lockAs,block);
-				newItem.setTrusted(plugin.trustHandler.getTrusteesCopy(lockAs));
-				list.put(block.getLocation(),newItem);
-				lockedItems = 1;
-			}
-			save("Chests.txt");
-			return lockedItems;
-		}
-		else {
-			return 0;
-		}
-	}
-	public Integer lock(Player player,Block block,DyeColor[] combo){
-		if (player == null || block == null || list == null || combo.length != 3) return 0;
-		if (plugin.canLock(block)){
-			int lockedItems = 0;
-            String lockAs = player.getName();
-            if (plugin.locksAs.containsKey(lockAs)){
-                lockAs = plugin.locksAs.get(lockAs);
+            HashSet<Block> lockBlocks = new HashSet<Block>();
+            if (plugin.lockpair && plugin.canDoubleLock(block)){
+                lockBlocks.addAll(this.getTypedNeighbours(block));
             }
-			if (plugin.lockpair && plugin.canDoubleLock(block)){
-				lockedItems = this.addNeighboring(block,lockAs,combo);
-			}
-			else {
-				SCLItem newItem = new SCLItem(lockAs,block,combo);
-				newItem.setTrusted(plugin.trustHandler.getTrusteesCopy(lockAs));
-				list.put(block.getLocation(),newItem);
-				lockedItems = 1;
-			}
-			return lockedItems;
-		}
-		else {
-			return 0;
-		}
+            else {
+                lockBlocks.add(block);
+            }
+            
+            if (plugin.limitHandler.canLock(player, lockBlocks.size())){
+                for (Block lockMe : lockBlocks){
+                    plugin.babble("Locking "+lockMe.getType().toString());
+                    SCLItem newItem = new SCLItem(lockAs,lockMe);
+                    if (combo != null){
+                        newItem.setCombo(combo);
+                        newItem.setComboLocked(true);
+                    }
+                    newItem.setTrusted(plugin.trustHandler.getTrusteesCopy(lockAs));
+                    list.put(lockMe.getLocation(),newItem);
+                }
+                save("Chests.txt");
+                return lockBlocks.size();
+            }
+            else {
+                player.sendMessage(ChatColor.RED+"You do not have enough free locks to lock this!");
+                player.sendMessage(ChatColor.YELLOW+plugin.limitHandler.usedString(player));
+                return 0;
+            }
+        }
+        else {
+            player.sendMessage(ChatColor.RED+"This is not a lockable block!");
+            return 0;
+        }
 	}
 	public String getComboString(Block block) {
 		if (list.containsKey(block.getLocation())){
@@ -348,54 +346,27 @@ public class SCLList implements Runnable {
 		
 		return neighbours;
 	}
+	public HashSet<Block> getTypedNeighbours (Block block) {
+	    HashSet<Block> rawNeighbours = getNeighbours(block);
+	    HashSet<Block> typedNeighbours = new HashSet<Block>();
+	    for (Block thisNeighbour : rawNeighbours){
+	        if (thisNeighbour.getType().equals(block.getType())){
+	            typedNeighbours.add(thisNeighbour);
+	        }
+	    }
+	    return typedNeighbours;
+	}
 	private Integer removeNeighboring (Block block) {
 		String playerName = getOwner(block);
 		Integer additionalUnlocked = 0;
-		for (Block currentNeighbour : this.getNeighbours(block)){
-			if (currentNeighbour.getType().equals(block.getType())){
-				String owner = this.getOwner(currentNeighbour);
-				if (owner != null && owner.equals(playerName)){
-					list.remove(currentNeighbour.getLocation());
-					additionalUnlocked++;
-				}
+		for (Block currentNeighbour : this.getTypedNeighbours(block)){
+			String owner = this.getOwner(currentNeighbour);
+			if (owner != null && owner.equals(playerName)){
+				list.remove(currentNeighbour.getLocation());
+				additionalUnlocked++;
 			}
 		}
 		return additionalUnlocked;
-	}
-	private Integer addNeighboring (Block block,String ownerName,DyeColor[] combo) {
-		Integer additionalItemsLocked = 0;
-		for (Block currentNeighbour : this.getNeighbours(block)){
-			if (currentNeighbour.getType().equals(block.getType())){
-			    SCLItem newItem = new SCLItem(ownerName,currentNeighbour,combo);
-			    newItem.setTrusted(plugin.trustHandler.getTrusteesCopy(ownerName));
-				list.put(currentNeighbour.getLocation(),newItem);
-				plugin.babble("ComboLocked a block by association");
-				additionalItemsLocked++;
-			}
-		}
-		return additionalItemsLocked;
-	}
-	private Integer addNeighboring (Block block,String ownerName) {
-		Integer additionalItemsLocked = 0;
-
-		for (Block currentNeighbour : this.getNeighbours(block)){
-			if (currentNeighbour.getType().equals(block.getType())){
-				if (list.containsKey(currentNeighbour.getLocation())){
-					plugin.babble("Uhm, this "+currentNeighbour.getType().toString().toLowerCase()+" is already locked.");
-				}
-				else {
-					plugin.babble("Locking "+currentNeighbour.getType().toString().toLowerCase()+" at "+currentNeighbour.getLocation().toString());
-					SCLItem newItem = new SCLItem(ownerName,currentNeighbour);
-	                newItem.setTrusted(plugin.trustHandler.getTrusteesCopy(ownerName));
-					list.put(currentNeighbour.getLocation(), newItem);
-					additionalItemsLocked++;
-				}
-			}
-			else {
-				plugin.babble("Not locking "+currentNeighbour.getType().toString().toLowerCase()+"!  Current type is "+block.getType().toString().toLowerCase());
-			}
-		}
-		return additionalItemsLocked;
 	}
 	@Override
 	public void run() {
