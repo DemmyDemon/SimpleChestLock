@@ -91,7 +91,7 @@ public class SCLPlayerListener implements Listener {
 						}
 					}
 					else if (! owner.equalsIgnoreCase(player.getName()) && lockedItem.trusts(player)){
-					    plugin.messaging.throttledMessage(player,ChatColor.GREEN+owner+" trusts you with access to this "+typeName);
+					    player.sendMessage(ChatColor.GREEN+owner+" trusts you with access to this "+typeName);
 					}
 					else if (! owner.equalsIgnoreCase(player.getName()) && ! ignoreOwner){
 						event.setCancelled(true);
@@ -100,7 +100,7 @@ public class SCLPlayerListener implements Listener {
 					else if (! owner.equalsIgnoreCase(player.getName()) && ignoreOwner){
 						plugin.babble(player.getName()+" was let into "+owner+"'s "+typeName+", ignoring owner.");
 						if (plugin.openMessage){
-						    plugin.messaging.throttledMessage(player,ChatColor.GREEN+"Access granted to "+owner+"'s "+typeName);
+						    player.sendMessage(ChatColor.GREEN+"Access granted to "+owner+"'s "+typeName);
 						}
 					}
 					else {
@@ -276,7 +276,7 @@ public class SCLPlayerListener implements Listener {
 									}
 								}
 							}
-							else if (plugin.usePermissionsWhitelist){
+							else if (plugin.usePermissionsWhitelist && plugin.whitelistMessage){
 								player.sendMessage(ChatColor.RED+"Sorry, you are not allowed to lock "+block.getType().toString());
 							}
 						}

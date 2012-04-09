@@ -17,6 +17,7 @@ import java.util.UUID;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.DyeColor;
+import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -153,10 +154,15 @@ public class SCLList implements Runnable {
 							for (Entity entity : entityList){
 								ItemStack original = ((Item)entity).getItemStack();
 								ItemStack itemFound = original.clone();
-								if ( inventory.firstEmpty() != -1 && !sucked.contains(entity.getUniqueId()) ){ 
-									inventory.addItem(itemFound);
-									entity.remove();
-									sucked.add(entity.getUniqueId());
+								if ( inventory.firstEmpty() != -1 && !sucked.contains(entity.getUniqueId()) ){
+								    if (entity.getTicksLived() >= plugin.suckInterval){
+								        inventory.addItem(itemFound);
+								        entity.remove();
+								        if (plugin.suckEffect){
+								            item.getLocation().getWorld().playEffect(item.getLocation(), Effect.CLICK2,0);
+								        }
+								    }
+									sucked.add(entity.getUniqueId()); // So it doesn't get considered again until next time, even if it wasn't actually sucked.
 								}
 								else {
 									break;

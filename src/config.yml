@@ -1,13 +1,16 @@
 usePermissionsWhitelist: false
+whitelistMessage: true
 lockpair: true
 lockedChestsSuck: false
+suckRange: 3
+suckInterval: 100
+suckEffect: true
 verbose: false
 key: 280
 keyDurability: 0
 comboKey: 352
 comboKeyDurability: 0
 useKeyDurability: false
-suckRange: 3
 openMessage: true
 useLimits: false
 lockLimits:

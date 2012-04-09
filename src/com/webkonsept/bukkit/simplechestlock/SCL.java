@@ -38,11 +38,14 @@ public class SCL extends JavaPlugin {
 	public boolean useKeyData = false;
 	public boolean openMessage = true;
 	public boolean usePermissionsWhitelist = false;
+	public boolean whitelistMessage = true;
 	public boolean lockedChestsSuck = false;
 	public int suckRange = 3;
 	public TrustHandler trustHandler;
 	public LimitHandler limitHandler;
 	public boolean useLimits = false;
+	public int suckInterval = 100;
+	public boolean suckEffect = true;
 	
 	public Messaging messaging = new Messaging(this,3000);
 	
@@ -98,7 +101,7 @@ public class SCL extends JavaPlugin {
 		pm.registerEvent(Event.Type.WORLD_LOAD, worldListener,Priority.Normal, this);
 		*/
 		if (lockedChestsSuck){
-			server.getScheduler().scheduleSyncRepeatingTask(this,chests, 100, 100);
+			server.getScheduler().scheduleSyncRepeatingTask(this,chests, suckInterval, suckInterval);
 		}
 		this.out("Enabled!");
 	}
@@ -402,9 +405,13 @@ public class SCL extends JavaPlugin {
 				
 				put("lockpair",true);
 				put("usePermissionsWhitelist",false);
-				put("lockedChestsSuck",false);
-				put("suckRange",3);
+				put("whitelistMessage",true);
 				put("openMessage",true);
+				
+                put("lockedChestsSuck",false);
+                put("suckRange",3);
+                put("suckInterval",100);
+                put("suckEffect",true);
 				
 			}
 		});
@@ -428,6 +435,7 @@ public class SCL extends JavaPlugin {
 		verbose = getConfig().getBoolean("verbose", false);
 	    lockpair = getConfig().getBoolean("lockpair", true);
 	    usePermissionsWhitelist = getConfig().getBoolean("usePermissionsWhitelist",false);
+	    whitelistMessage = getConfig().getBoolean("whitelistMessage",true);
 	    openMessage = getConfig().getBoolean("openMessage", true);
 	    
 	    useLimits = getConfig().getBoolean("useLimits",false);
@@ -440,6 +448,8 @@ public class SCL extends JavaPlugin {
 		
 		lockedChestsSuck = getConfig().getBoolean("lockedChestsSuck",false);
 		suckRange = getConfig().getInt("suckRange",3);
+		suckInterval = getConfig().getInt("suckInterval",100);
+		suckEffect = getConfig().getBoolean("suckEffect",true);
 		
 		Material keyMaterial = Material.getMaterial(keyInt);
 		Material comboKeyMaterial = Material.getMaterial(comboKeyInt);
