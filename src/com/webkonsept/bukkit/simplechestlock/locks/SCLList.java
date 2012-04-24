@@ -58,12 +58,12 @@ public class SCLList implements Runnable {
 	}
 	public void load (String filename) {
 		File lockedItemFile = new File (plugin.getDataFolder(),filename);
-		plugin.babble("Reading locks from "+lockedItemFile.getAbsolutePath());
+		plugin.verbose("Reading locks from " + lockedItemFile.getAbsolutePath());
 		list.clear();
 		if (!lockedItemFile.exists()){
 			plugin.getDataFolder().mkdir();
 			try {
-				plugin.babble("Attempting to create "+lockedItemFile.getAbsolutePath());
+				plugin.verbose("Attempting to create " + lockedItemFile.getAbsolutePath());
 				lockedItemFile.createNewFile();
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -88,7 +88,7 @@ public class SCLList implements Runnable {
 					}
 				}
 				else {
-					plugin.babble("Done reading protected locations!");
+					plugin.verbose("Done reading protected locations!");
 				}
 			}
 			in.close();
@@ -117,7 +117,7 @@ public class SCLList implements Runnable {
 			BufferedWriter out = new BufferedWriter(new FileWriter(lockedItemsFile));
 			for (SCLItem item : list.values()){
 				String line = item.toString();
-				plugin.babble("Saved: "+line);
+				plugin.verbose("Saved: " + line);
 				out.write(line);
 				out.newLine();
 			}
@@ -225,26 +225,26 @@ public class SCLList implements Runnable {
 	}
 	public boolean isComboLocked(Block block){
 		if (isLocked(block)){
-			plugin.babble("> Locked");
+			plugin.verbose("> Locked");
 			 
 			SCLItem item = list.get(block.getLocation());
 			if (item != null){
 				if (item.isComboLocked()){
-					plugin.babble("> Combo");
+					plugin.verbose("> Combo");
 					return true;
 				}
 				else {
-					plugin.babble("> Not a combo");
+					plugin.verbose("> Not a combo");
 					return false;
 				}
 			}
 			else {
-				plugin.babble("> Locked item is null?!");
+				plugin.verbose("> Locked item is null?!");
 				return false;
 			}
 		}
 		else {
-			plugin.babble("> Not locked!");
+			plugin.verbose("> Not locked!");
 			return false;
 		}
 	}
@@ -270,7 +270,7 @@ public class SCLList implements Runnable {
             
             if (plugin.limitHandler.canLock(player, lockBlocks.size())){
                 for (Block lockMe : lockBlocks){
-                    plugin.babble("Locking "+lockMe.getType().toString());
+                    plugin.verbose("Locking " + lockMe.getType().toString());
                     SCLItem newItem = new SCLItem(lockAs,lockMe);
                     if (combo != null){
                         newItem.setCombo(combo);
@@ -334,7 +334,7 @@ public class SCLList implements Runnable {
 		
 		// For doors
 		if (plugin.lockIncludeVertical.contains(block.getType())){
-			plugin.babble(block.getType().toString()+" is vertically locked.");
+			plugin.verbose(block.getType().toString() + " is vertically locked.");
 			HashSet<Block> additionalNeighbours = new HashSet<Block>();
 			for (Block neighbour : neighbours){
 				Block above = neighbour.getRelative(BlockFace.UP);
@@ -347,7 +347,7 @@ public class SCLList implements Runnable {
 			neighbours.addAll(additionalNeighbours);
 		}
 		else {
-			plugin.babble(block.getType().toString()+" is NOT vertically locked.");
+			plugin.verbose(block.getType().toString() + " is NOT vertically locked.");
 		}
 		
 		return neighbours;

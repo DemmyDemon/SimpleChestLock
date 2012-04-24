@@ -74,7 +74,7 @@ public class SCLItem {
 			Location location = new Location(world,X,Y,Z);
 			Material type = location.getBlock().getType();
 			if(plugin.lockable.containsKey(type)){
-				plugin.babble("Added location to protection list: Player("+playerName+") World("+world+") X("+X+") Y("+Y+") Z("+Z+")");
+				plugin.verbose("Added location to protection list: Player(" + playerName + ") World(" + world + ") X(" + X + ") Y(" + Y + ") Z(" + Z + ")");
 				isLocationDeferred = false;
 				this.location = location;
 				
@@ -85,7 +85,7 @@ public class SCLItem {
 		}
 		else if (world == null && X != null && Y != null && Z != null){
 			isLocationDeferred = true;
-			plugin.babble("World '"+lockdef.worldName+"' isn't loaded yet.  Will defer loading to the world load event.");
+			plugin.verbose("World '" + lockdef.worldName + "' isn't loaded yet.  Will defer loading to the world load event.");
 			deferredLocation = lockdef.worldName+split+lockdef.X+split+lockdef.Y+split+lockdef.Z;
 		}
 		else {
@@ -177,7 +177,7 @@ public class SCLItem {
 			}
 			
 			if (world == null){
-				plugin.babble("Nope, "+locationParts[0]+" is still not loaded.");
+				plugin.verbose("Nope, " + locationParts[0] + " is still not loaded.");
 				isLocationDeferred = true;
 				return false;
 			}
@@ -185,7 +185,7 @@ public class SCLItem {
 				Location location = new Location(world,X,Y,Z);
 				Material type = location.getBlock().getType();
 				if(plugin.lockable.containsKey(type)){
-					plugin.babble("Added location to protection list: Player("+owner+") World("+world+") X("+X+") Y("+Y+") Z("+Z+")");
+					plugin.verbose("Added location to protection list: Player(" + owner + ") World(" + world + ") X(" + X + ") Y(" + Y + ") Z(" + Z + ")");
 					this.location = location;
 					plugin.chests.list.put(location,this);
 				}

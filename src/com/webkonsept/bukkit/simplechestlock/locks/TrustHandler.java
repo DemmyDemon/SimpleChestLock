@@ -33,17 +33,17 @@ public class TrustHandler {
         plugin.saveConfig();
     }
     public void loadFromConfig(){
-        plugin.babble("Loading trust relations from config");
+        plugin.verbose("Loading trust relations from config");
         ConfigurationSection trustSection =  plugin.getConfig().getConfigurationSection("trust");
         if (trustSection != null){
             Set<String> people = trustSection.getKeys(false);
-            plugin.babble(people.size()+" people have registered trust");
+            plugin.verbose(people.size() + " people have registered trust");
             for (String truster : people){
-                plugin.babble("Parsing truster "+truster);
+                plugin.verbose("Parsing truster " + truster);
                 List<String> trustedDudes = plugin.getConfig().getStringList("trust."+truster);
                 HashSet<String> trustees = new HashSet<String>();
                 for (String trustee : trustedDudes){
-                    plugin.babble("   -> "+trustee);
+                    plugin.verbose("   -> " + trustee);
                     trustees.add(trustee);
                 }
                 trust.put(truster,trustees);
@@ -63,7 +63,6 @@ public class TrustHandler {
          * Why not just .clone?  Because it's an "Unsafe cast".  It really isn't but whatever.
          * Doing it this way is O(n), doing .clone is likely O(n) as well.  Haven't checked.
          * What are the odds a trust list is long enough for anyone to notice?
-         * Still:  TODO check for faster way to do this, out of principle.
          */
         for (String trusted : original){
             safeCopy.add(trusted);
@@ -73,22 +72,22 @@ public class TrustHandler {
     public void addTrust (String truster,String trustee){
         if (trust.containsKey(truster.toLowerCase())){
             trust.get(truster).add(trustee.toLowerCase());
-            plugin.babble(truster+" now also trusts "+trustee);
+            plugin.verbose(truster + " now also trusts " + trustee);
         }
         else {
             HashSet<String> trustage = new HashSet<String>();
             trustage.add(trustee.toLowerCase());
             trust.put(truster.toLowerCase(), trustage);
-            plugin.babble(truster+" trusts "+trustee);
+            plugin.verbose(truster + " trusts " + trustee);
         }
     }
     public void removeTrust(String truster,String trustee){
         if (trust.containsKey(truster.toLowerCase())){
             trust.get(truster.toLowerCase()).remove(trustee.toLowerCase());
-            plugin.babble(truster+" no longer trusts "+trustee);
+            plugin.verbose(truster + " no longer trusts " + trustee);
         }
         else {
-            plugin.babble(truster+" never trusted "+trustee);
+            plugin.verbose(truster + " never trusted " + trustee);
         }
     }
     

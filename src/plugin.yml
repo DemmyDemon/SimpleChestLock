@@ -1,6 +1,6 @@
 name: SimpleChestLock
 main: com.webkonsept.bukkit.simplechestlock.SCL
-version: 0.19
+version: 0.19.1
 branch: stable
 thread: http://forums.bukkit.org/threads/SimpleChestLock.17557/
 website: http://minecraft.webkonsept.com/plugins/details/SimpleChestLock.html
@@ -70,9 +70,3 @@ permissions:
     simplechestlock.usecombo:
         description: Access to locking with a combination lock
         default: op
-    simplechestlock.locktype.*:
-        description: Lock any lockable item
-        default: op
-    simplechestlock.locktype.Lockable_Name_Here:
-        description: Gives permission to lock Lockable_Name_Here blocks
-        default: false

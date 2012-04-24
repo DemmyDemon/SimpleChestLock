@@ -57,14 +57,14 @@ public class SCLPlayerListener implements Listener {
 				if (plugin.chests.isLocked(block)){
 				    SCLItem lockedItem = plugin.chests.getItem(block);
 					String owner = lockedItem.getOwner();
-					plugin.babble(player.getName()+" wants to use "+owner+"'s "+typeName);
+					plugin.verbose(player.getName() + " wants to use " + owner + "'s " + typeName);
 					boolean ignoreOwner = plugin.permit(player, "simplechestlock.ignoreowner");
 					boolean comboLocked = lockedItem.isComboLocked();
 					if (comboLocked){
-						plugin.babble("This block is locked with a combination lock!");
+						plugin.verbose("This block is locked with a combination lock!");
 					}
 					else {
-						plugin.babble("This block is locked with a normal key");
+						plugin.verbose("This block is locked with a normal key");
 					}
 					
 					if ( comboLocked && ! owner.equalsIgnoreCase(player.getName()) && ! ignoreOwner){
@@ -79,13 +79,13 @@ public class SCLPlayerListener implements Listener {
 							DyeColor tumbler3 = DyeColor.getByData(inv.getItem(2).getData().getData());
 							DyeColor[] combo = {tumbler1,tumbler2,tumbler3};
 							if (!lockedItem.correctCombo(combo)){
-								plugin.babble(player.getName()+" provided the wrong combo for "+owner+"'s "+typeName);
+								plugin.verbose(player.getName() + " provided the wrong combo for " + owner + "'s " + typeName);
 								plugin.messaging.throttledMessage(player,ChatColor.RED+owner+"'s "+typeName+" has a different combination...");
 								event.setCancelled(true);
 							}
 						}
 						else {
-							plugin.babble(player.getName()+" provided no combo for "+owner+"'s "+typeName);
+							plugin.verbose(player.getName() + " provided no combo for " + owner + "'s " + typeName);
 							plugin.messaging.throttledMessage(player,ChatColor.RED+owner+"'s "+typeName+" is locked with a combination lock.");
 							event.setCancelled(true);
 						}
@@ -98,13 +98,13 @@ public class SCLPlayerListener implements Listener {
 						plugin.messaging.throttledMessage(player,ChatColor.RED+"Access denied to "+owner+"'s "+typeName);
 					}
 					else if (! owner.equalsIgnoreCase(player.getName()) && ignoreOwner){
-						plugin.babble(player.getName()+" was let into "+owner+"'s "+typeName+", ignoring owner.");
+						plugin.verbose(player.getName() + " was let into " + owner + "'s " + typeName + ", ignoring owner.");
 						if (plugin.openMessage){
 						    player.sendMessage(ChatColor.GREEN+"Access granted to "+owner+"'s "+typeName);
 						}
 					}
 					else {
-						plugin.babble(player.getName()+" was let into the "+typeName);
+						plugin.verbose(player.getName() + " was let into the " + typeName);
 						if (plugin.openMessage){
 							if (comboLocked){
 								String comboString = plugin.chests.getComboString(block);
@@ -122,13 +122,13 @@ public class SCLPlayerListener implements Listener {
 				}
 				/*  simplechestlock.limited permission has been nothing but grief :-(
 				else if (plugin.permit(player, "simplechestlock.limited") && !plugin.permit(player, "simplechestlock.ignoreowner")){
-				    plugin.babble("Player "+player.getName()+" is limited, and access to un-owned "+typeName+" was denied.");
+				    plugin.verbose("Player "+player.getName()+" is limited, and access to un-owned "+typeName+" was denied.");
 				    event.setCancelled(true);
 				    player.sendMessage(ChatColor.RED+"You can only open thigs that belong to you.");
 				}
 				*/
 				else {
-				    plugin.babble("Access granted to unlocked "+typeName);
+				    plugin.verbose("Access granted to unlocked " + typeName);
 				}
 			}
 			else if (event.getAction().equals(Action.LEFT_CLICK_BLOCK)){
@@ -187,8 +187,9 @@ public class SCLPlayerListener implements Listener {
 							if (
 								!(plugin.usePermissionsWhitelist)
 								|| ( 
-										plugin.usePermissionsWhitelist 
-										&& plugin.permit(player, new String[]{"simplechestlock.locktype."+block.getType().toString().toLowerCase(),"simplechestlock.locktype.*"})
+										plugin.usePermissionsWhitelist
+										// Just checking for the indevidual block now, as the parent .* permission will grant them all.
+										&& plugin.permit(player,"simplechestlock.locktype."+block.getType().toString().toLowerCase())
 									)
 							){
 								boolean lockForSomeone = false;

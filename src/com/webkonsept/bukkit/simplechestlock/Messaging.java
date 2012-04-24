@@ -25,7 +25,7 @@ public class Messaging {
                 playerTime.put(playerName,now());
             }
             else {
-                plugin.babble("Throttling suppressed message '"+message+"' for "+playerName);
+                plugin.verbose("Throttling suppressed message '" + message + "' for " + playerName);
             }
         }
         else {

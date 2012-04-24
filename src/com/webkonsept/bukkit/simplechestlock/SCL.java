@@ -16,6 +16,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.permissions.Permission;
+import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -81,10 +83,12 @@ public class SCL extends JavaPlugin {
 
 	@Override
 	public void onEnable() {
+	    loadConfig();
 		setupLockables();
+		
 		trustHandler = new TrustHandler(this);
 		limitHandler = new LimitHandler(this);
-		loadConfig();
+
 		server = getServer();
 		chests.load("Chests.txt");
 		PluginManager pm = getServer().getPluginManager();
@@ -93,13 +97,7 @@ public class SCL extends JavaPlugin {
 		pm.registerEvents(blockListener,this);
 		pm.registerEvents(entityListener,this);
 		pm.registerEvents(worldListener,this);
-		/* OLD!
-		pm.registerEvent(Event.Type.PLAYER_INTERACT,playerListener,Priority.Normal, this);
-		pm.registerEvent(Event.Type.BLOCK_BREAK,blockListener, Priority.Normal, this);
-		pm.registerEvent(Event.Type.BLOCK_PLACE,blockListener, Priority.Normal, this);
-		pm.registerEvent(Event.Type.ENTITY_EXPLODE,entityListener,Priority.Normal,this);
-		pm.registerEvent(Event.Type.WORLD_LOAD, worldListener,Priority.Normal, this);
-		*/
+		
 		if (lockedChestsSuck){
 			server.getScheduler().scheduleSyncRepeatingTask(this,chests, suckInterval, suckInterval);
 		}
@@ -296,11 +294,11 @@ public class SCL extends JavaPlugin {
 		for (String permission : permissions){
 			permit = player.hasPermission(permission);
 			if (permit){
-				babble("Permission granted: "+playerName+"->("+permission+")");
+				verbose("Permission granted: " + playerName + "->(" + permission + ")");
 				break;
 			}
 			else {
-				babble("Permission denied: "+playerName+"->("+permission+")");
+				verbose("Permission denied: " + playerName + "->(" + permission + ")");
 			}
 		}
 		return permit;
@@ -317,7 +315,7 @@ public class SCL extends JavaPlugin {
 		PluginDescriptionFile pdfFile = this.getDescription();
 		log.severe("[" + pdfFile.getName()+ " " + pdfFile.getVersion() + "] " + message);
 	}
-	public void babble(String message){
+	public void verbose(String message){
 		if (!this.verbose){ return; }
 		PluginDescriptionFile pdfFile = this.getDescription();
 		log.info("[" + pdfFile.getName()+ " " + pdfFile.getVersion() + " VERBOSE] " + message);
@@ -338,6 +336,9 @@ public class SCL extends JavaPlugin {
 		lockable.put(Material.JUKEBOX,false);
 		lockable.put(Material.ENCHANTMENT_TABLE,false);
 		lockable.put(Material.BREWING_STAND,false);
+		
+		// Requested to be lockable, even though it can't store stuff
+		lockable.put(Material.WORKBENCH,false);
 		
 		//NOTE:  If double locking is enabled for furnaces, remember that a furnace and a burning furnace are NOT the same material!
 		// That means that double locking, which tests the neighboring blocks for .equals() on the material, won't work if one is burning. 
@@ -372,6 +373,21 @@ public class SCL extends JavaPlugin {
 		// Some types will "suck" in items, if enabled
 		canSuck.add(Material.CHEST);
 		canSuck.add(Material.DISPENSER);
+		
+		
+		// The associated permissions
+		verbose("Preparing permissions:");
+	    Permission allBlocksPermission = new Permission("simplechestlock.locktype.*");
+        for (Material mat : lockable.keySet()){
+            if (mat.isBlock()){
+                String permissionName = "simplechestlock.locktype."+mat.toString().toLowerCase();
+                verbose("   -> Preparing permission " + permissionName);
+                Permission thisBlockPermission = new Permission(permissionName,PermissionDefault.OP);
+                //getServer().getPluginManager().addPermission(allBlocksPermission);
+                thisBlockPermission.addParent(allBlocksPermission, true);
+            }
+        }
+        getServer().getPluginManager().addPermission(allBlocksPermission);
 	}
 	public boolean canLock (Block block){
 		if (block == null) return false;
