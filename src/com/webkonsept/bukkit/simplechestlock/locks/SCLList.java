@@ -32,10 +32,10 @@ import org.bukkit.inventory.ItemStack;
 import com.webkonsept.bukkit.simplechestlock.SCL;
 
 public class SCLList implements Runnable {
-	SCL plugin;
-	public HashMap<Location,SCLItem> list = new HashMap<Location,SCLItem>();
+	final SCL plugin;
+	public final HashMap<Location,SCLItem> list = new HashMap<Location,SCLItem>();
 	int key = 0;
-	HashSet<SCLItem> deferredItems = new HashSet<SCLItem>();
+	final HashSet<SCLItem> deferredItems = new HashSet<SCLItem>();
 	
 	public SCLList(SCL instance) {
 		plugin = instance;
@@ -58,12 +58,12 @@ public class SCLList implements Runnable {
 	}
 	public void load (String filename) {
 		File lockedItemFile = new File (plugin.getDataFolder(),filename);
-		plugin.verbose("Reading locks from " + lockedItemFile.getAbsolutePath());
+		SCL.verbose("Reading locks from " + lockedItemFile.getAbsolutePath());
 		list.clear();
 		if (!lockedItemFile.exists()){
 			plugin.getDataFolder().mkdir();
 			try {
-				plugin.verbose("Attempting to create " + lockedItemFile.getAbsolutePath());
+				SCL.verbose("Attempting to create " + lockedItemFile.getAbsolutePath());
 				lockedItemFile.createNewFile();
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -88,7 +88,7 @@ public class SCLList implements Runnable {
 					}
 				}
 				else {
-					plugin.verbose("Done reading protected locations!");
+					SCL.verbose("Done reading protected locations!");
 				}
 			}
 			in.close();
@@ -104,7 +104,7 @@ public class SCLList implements Runnable {
 		File lockedItemsFile = new File (plugin.getDataFolder(),filename);
 		if (!lockedItemsFile.exists()){
 			plugin.getDataFolder().mkdir();
-			plugin.out("Attempting to create "+lockedItemsFile.getAbsolutePath());
+			SCL.out("Attempting to create "+lockedItemsFile.getAbsolutePath());
 			try {
 				lockedItemsFile.createNewFile();
 			} catch (IOException e) {
@@ -117,7 +117,7 @@ public class SCLList implements Runnable {
 			BufferedWriter out = new BufferedWriter(new FileWriter(lockedItemsFile));
 			for (SCLItem item : list.values()){
 				String line = item.toString();
-				plugin.verbose("Saved: " + line);
+				SCL.verbose("Saved: " + line);
 				out.write(line);
 				out.newLine();
 			}
@@ -216,35 +216,30 @@ public class SCLList implements Runnable {
 	public boolean isLocked(Block block){
 		if (block == null) return false;
 		if (list == null) return false;
-		if (list.containsKey(block.getLocation())){
-			return true;
-		}
-		else {
-			return false;
-		}
+        return list.containsKey(block.getLocation());
 	}
 	public boolean isComboLocked(Block block){
 		if (isLocked(block)){
-			plugin.verbose("> Locked");
+			SCL.verbose("> Locked");
 			 
 			SCLItem item = list.get(block.getLocation());
 			if (item != null){
 				if (item.isComboLocked()){
-					plugin.verbose("> Combo");
+					SCL.verbose("> Combo");
 					return true;
 				}
 				else {
-					plugin.verbose("> Not a combo");
+					SCL.verbose("> Not a combo");
 					return false;
 				}
 			}
 			else {
-				plugin.verbose("> Locked item is null?!");
+				SCL.verbose("> Locked item is null?!");
 				return false;
 			}
 		}
 		else {
-			plugin.verbose("> Not locked!");
+			SCL.verbose("> Not locked!");
 			return false;
 		}
 	}
@@ -270,7 +265,7 @@ public class SCLList implements Runnable {
             
             if (plugin.limitHandler.canLock(player, lockBlocks.size())){
                 for (Block lockMe : lockBlocks){
-                    plugin.verbose("Locking " + lockMe.getType().toString());
+                    SCL.verbose("Locking " + lockMe.getType().toString());
                     SCLItem newItem = new SCLItem(lockAs,lockMe);
                     if (combo != null){
                         newItem.setCombo(combo);
@@ -334,7 +329,7 @@ public class SCLList implements Runnable {
 		
 		// For doors
 		if (plugin.lockIncludeVertical.contains(block.getType())){
-			plugin.verbose(block.getType().toString() + " is vertically locked.");
+			SCL.verbose(block.getType().toString() + " is vertically locked.");
 			HashSet<Block> additionalNeighbours = new HashSet<Block>();
 			for (Block neighbour : neighbours){
 				Block above = neighbour.getRelative(BlockFace.UP);
@@ -347,7 +342,7 @@ public class SCLList implements Runnable {
 			neighbours.addAll(additionalNeighbours);
 		}
 		else {
-			plugin.verbose(block.getType().toString() + " is NOT vertically locked.");
+			SCL.verbose(block.getType().toString() + " is NOT vertically locked.");
 		}
 		
 		return neighbours;

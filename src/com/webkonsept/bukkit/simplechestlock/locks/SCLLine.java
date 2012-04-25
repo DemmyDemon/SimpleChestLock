@@ -10,7 +10,7 @@ public class SCLLine {
     private final static String splitter = ",";
     
     // Raw form
-    private ArrayList<String> items = new ArrayList<String>();
+    private final ArrayList<String> items = new ArrayList<String>();
 
     // Digested form
     public String owner;
@@ -19,10 +19,10 @@ public class SCLLine {
     public String Y = null;
     public String Z = null;
     public String comboLocked = null;
-    public String combo[] = {"WHITE","WHITE","WHITE"};
+    public final String[] combo = {"WHITE","WHITE","WHITE"};
     
     public String trustLocked = null;
-    public HashSet<String> trusted = new HashSet<String>(); 
+    public final HashSet<String> trusted = new HashSet<String>();
 
     public SCLLine(String line) throws ParseException,IndexOutOfBoundsException {
         items.addAll(Arrays.asList(line.split(splitter)));

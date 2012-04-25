@@ -21,7 +21,7 @@ public class SCLItem {
 	public String worldName;
 	private boolean isLocationDeferred = true;
 	private String owner;
-	private String split = ",";
+	private final String split = ",";
 	private boolean comboLocked = false;
 	private DyeColor combo[] = {DyeColor.WHITE,DyeColor.WHITE,DyeColor.WHITE};
 	private HashSet<String> trusted = new HashSet<String>();
@@ -74,7 +74,7 @@ public class SCLItem {
 			Location location = new Location(world,X,Y,Z);
 			Material type = location.getBlock().getType();
 			if(plugin.lockable.containsKey(type)){
-				plugin.verbose("Added location to protection list: Player(" + playerName + ") World(" + world + ") X(" + X + ") Y(" + Y + ") Z(" + Z + ")");
+				SCL.verbose("Added location to protection list: Player(" + playerName + ") World(" + world + ") X(" + X + ") Y(" + Y + ") Z(" + Z + ")");
 				isLocationDeferred = false;
 				this.location = location;
 				
@@ -85,7 +85,7 @@ public class SCLItem {
 		}
 		else if (world == null && X != null && Y != null && Z != null){
 			isLocationDeferred = true;
-			plugin.verbose("World '" + lockdef.worldName + "' isn't loaded yet.  Will defer loading to the world load event.");
+			SCL.verbose("World '" + lockdef.worldName + "' isn't loaded yet.  Will defer loading to the world load event.");
 			deferredLocation = lockdef.worldName+split+lockdef.X+split+lockdef.Y+split+lockdef.Z;
 		}
 		else {
@@ -132,6 +132,15 @@ public class SCLItem {
 	        return true;
 	    }
 	    else {
+            for (String trustedEntry : trusted){
+                if (trustedEntry.toLowerCase().startsWith("g:")){
+                    String groupName = trustedEntry.substring(2);
+                    SCL.verbose("Trust group found: "+groupName);
+                    if (SCL.permit(player,"group."+groupName)){
+                        return true;
+                    }
+                }
+            }
 	        return false;
 	    }
 	}
@@ -177,7 +186,7 @@ public class SCLItem {
 			}
 			
 			if (world == null){
-				plugin.verbose("Nope, " + locationParts[0] + " is still not loaded.");
+				SCL.verbose("Nope, " + locationParts[0] + " is still not loaded.");
 				isLocationDeferred = true;
 				return false;
 			}
@@ -185,7 +194,7 @@ public class SCLItem {
 				Location location = new Location(world,X,Y,Z);
 				Material type = location.getBlock().getType();
 				if(plugin.lockable.containsKey(type)){
-					plugin.verbose("Added location to protection list: Player(" + owner + ") World(" + world + ") X(" + X + ") Y(" + Y + ") Z(" + Z + ")");
+					SCL.verbose("Added location to protection list: Player(" + owner + ") World(" + world + ") X(" + X + ") Y(" + Y + ") Z(" + Z + ")");
 					this.location = location;
 					plugin.chests.list.put(location,this);
 				}
@@ -257,14 +266,10 @@ public class SCLItem {
 	}
 	public void setCombo(DyeColor[] comboArray){
 		if(comboArray.length > combo.length){
-			for (int i = 0; i < combo.length; i++){
-				combo[i] = comboArray[i];
-			}
+            System.arraycopy(comboArray, 0, combo, 0, combo.length);
 		}
 		else if (comboArray.length < combo.length) {
-			for (int i = 0; i < comboArray.length; i++){
-				combo[i] = comboArray[i];
-			}
+            System.arraycopy(comboArray, 0, combo, 0, comboArray.length);
 		}
 		else {
 			combo = comboArray;

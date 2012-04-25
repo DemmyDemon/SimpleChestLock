@@ -13,7 +13,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import com.webkonsept.bukkit.simplechestlock.SCL;
 
 public class SCLBlockListener implements Listener {
-	SCL plugin;
+	final SCL plugin;
 	
 	public SCLBlockListener(SCL instance) {
 		plugin = instance;
@@ -29,13 +29,13 @@ public class SCLBlockListener implements Listener {
 		if (plugin.chests.isLocked(block)){
 			Player player = event.getPlayer();
 			String owner = plugin.chests.getOwner(block);
-			if (owner != player.getName() && ! plugin.permit(player,"simplechestlock.ignoreowner")){
+			if (owner.equalsIgnoreCase(player.getName()) && ! SCL.permit(player,"simplechestlock.ignoreowner")){
 				plugin.messaging.throttledMessage(player,ChatColor.RED+"You can't break "+owner+"'s block!");
 				event.setCancelled(true);
 			}
 			else {
 				plugin.chests.unlock(block);
-				if (player.getName() != owner){
+				if (player.getName().equalsIgnoreCase(owner)){
 					Player ownerPlayer = plugin.getServer().getPlayer(owner);
 					if (ownerPlayer != null){
 						ownerPlayer.sendMessage(ChatColor.RED+player.getName()+" broke one of your locked blocks.");

@@ -14,8 +14,8 @@ import com.webkonsept.bukkit.simplechestlock.SCL;
 
 public class TrustHandler {
     
-    private SCL plugin;
-    private HashMap<String,HashSet<String>> trust = new HashMap<String,HashSet<String>>();
+    private final SCL plugin;
+    private final HashMap<String,HashSet<String>> trust = new HashMap<String,HashSet<String>>();
     
     public TrustHandler(SCL instance){
         plugin = instance;
@@ -28,22 +28,22 @@ public class TrustHandler {
             for (String trustee : trust.get(truster)){
                 trustees.add(trustee);
             }
-            plugin.getConfig().set("trust."+truster,trustees);
+            plugin.getConfig().set("trust." + truster, trustees);
         }
         plugin.saveConfig();
     }
     public void loadFromConfig(){
-        plugin.verbose("Loading trust relations from config");
+        SCL.verbose("Loading trust relations from config");
         ConfigurationSection trustSection =  plugin.getConfig().getConfigurationSection("trust");
         if (trustSection != null){
             Set<String> people = trustSection.getKeys(false);
-            plugin.verbose(people.size() + " people have registered trust");
+            SCL.verbose(people.size() + " people have registered trust");
             for (String truster : people){
-                plugin.verbose("Parsing truster " + truster);
+                SCL.verbose("Parsing truster " + truster);
                 List<String> trustedDudes = plugin.getConfig().getStringList("trust."+truster);
                 HashSet<String> trustees = new HashSet<String>();
                 for (String trustee : trustedDudes){
-                    plugin.verbose("   -> " + trustee);
+                    SCL.verbose("   -> " + trustee);
                     trustees.add(trustee);
                 }
                 trust.put(truster,trustees);
@@ -72,22 +72,22 @@ public class TrustHandler {
     public void addTrust (String truster,String trustee){
         if (trust.containsKey(truster.toLowerCase())){
             trust.get(truster).add(trustee.toLowerCase());
-            plugin.verbose(truster + " now also trusts " + trustee);
+            SCL.verbose(truster + " now also trusts " + trustee);
         }
         else {
             HashSet<String> trustage = new HashSet<String>();
             trustage.add(trustee.toLowerCase());
             trust.put(truster.toLowerCase(), trustage);
-            plugin.verbose(truster + " trusts " + trustee);
+            SCL.verbose(truster + " trusts " + trustee);
         }
     }
     public void removeTrust(String truster,String trustee){
         if (trust.containsKey(truster.toLowerCase())){
             trust.get(truster.toLowerCase()).remove(trustee.toLowerCase());
-            plugin.verbose(truster + " no longer trusts " + trustee);
+            SCL.verbose(truster + " no longer trusts " + trustee);
         }
         else {
-            plugin.verbose(truster + " never trusted " + trustee);
+            SCL.verbose(truster + " never trusted " + trustee);
         }
     }
     

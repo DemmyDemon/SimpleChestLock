@@ -8,7 +8,7 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import com.webkonsept.bukkit.simplechestlock.SCL;
 
 public class SCLEntityListener implements Listener {
-	SCL plugin;
+	final SCL plugin;
 	
 	public SCLEntityListener(SCL instance) {
 		plugin = instance;

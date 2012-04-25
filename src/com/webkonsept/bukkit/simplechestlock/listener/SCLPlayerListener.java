@@ -17,7 +17,7 @@ import com.webkonsept.bukkit.simplechestlock.SCL;
 import com.webkonsept.bukkit.simplechestlock.locks.SCLItem;
 
 public class SCLPlayerListener implements Listener {
-	SCL plugin;
+	final SCL plugin;
 	
 	public SCLPlayerListener(SCL instance) {
 		plugin = instance;
@@ -57,14 +57,14 @@ public class SCLPlayerListener implements Listener {
 				if (plugin.chests.isLocked(block)){
 				    SCLItem lockedItem = plugin.chests.getItem(block);
 					String owner = lockedItem.getOwner();
-					plugin.verbose(player.getName() + " wants to use " + owner + "'s " + typeName);
-					boolean ignoreOwner = plugin.permit(player, "simplechestlock.ignoreowner");
+					SCL.verbose(player.getName() + " wants to use " + owner + "'s " + typeName);
+					boolean ignoreOwner = SCL.permit(player, "simplechestlock.ignoreowner");
 					boolean comboLocked = lockedItem.isComboLocked();
 					if (comboLocked){
-						plugin.verbose("This block is locked with a combination lock!");
+						SCL.verbose("This block is locked with a combination lock!");
 					}
 					else {
-						plugin.verbose("This block is locked with a normal key");
+						SCL.verbose("This block is locked with a normal key");
 					}
 					
 					if ( comboLocked && ! owner.equalsIgnoreCase(player.getName()) && ! ignoreOwner){
@@ -79,13 +79,13 @@ public class SCLPlayerListener implements Listener {
 							DyeColor tumbler3 = DyeColor.getByData(inv.getItem(2).getData().getData());
 							DyeColor[] combo = {tumbler1,tumbler2,tumbler3};
 							if (!lockedItem.correctCombo(combo)){
-								plugin.verbose(player.getName() + " provided the wrong combo for " + owner + "'s " + typeName);
+								SCL.verbose(player.getName() + " provided the wrong combo for " + owner + "'s " + typeName);
 								plugin.messaging.throttledMessage(player,ChatColor.RED+owner+"'s "+typeName+" has a different combination...");
 								event.setCancelled(true);
 							}
 						}
 						else {
-							plugin.verbose(player.getName() + " provided no combo for " + owner + "'s " + typeName);
+							SCL.verbose(player.getName() + " provided no combo for " + owner + "'s " + typeName);
 							plugin.messaging.throttledMessage(player,ChatColor.RED+owner+"'s "+typeName+" is locked with a combination lock.");
 							event.setCancelled(true);
 						}
@@ -98,13 +98,13 @@ public class SCLPlayerListener implements Listener {
 						plugin.messaging.throttledMessage(player,ChatColor.RED+"Access denied to "+owner+"'s "+typeName);
 					}
 					else if (! owner.equalsIgnoreCase(player.getName()) && ignoreOwner){
-						plugin.verbose(player.getName() + " was let into " + owner + "'s " + typeName + ", ignoring owner.");
+						SCL.verbose(player.getName() + " was let into " + owner + "'s " + typeName + ", ignoring owner.");
 						if (plugin.openMessage){
 						    player.sendMessage(ChatColor.GREEN+"Access granted to "+owner+"'s "+typeName);
 						}
 					}
 					else {
-						plugin.verbose(player.getName() + " was let into the " + typeName);
+						SCL.verbose(player.getName() + " was let into the " + typeName);
 						if (plugin.openMessage){
 							if (comboLocked){
 								String comboString = plugin.chests.getComboString(block);
@@ -120,15 +120,8 @@ public class SCLPlayerListener implements Listener {
 						}
 					}
 				}
-				/*  simplechestlock.limited permission has been nothing but grief :-(
-				else if (plugin.permit(player, "simplechestlock.limited") && !plugin.permit(player, "simplechestlock.ignoreowner")){
-				    plugin.verbose("Player "+player.getName()+" is limited, and access to un-owned "+typeName+" was denied.");
-				    event.setCancelled(true);
-				    player.sendMessage(ChatColor.RED+"You can only open thigs that belong to you.");
-				}
-				*/
 				else {
-				    plugin.verbose("Access granted to unlocked " + typeName);
+				    SCL.verbose("Access granted to unlocked " + typeName);
 				}
 			}
 			else if (event.getAction().equals(Action.LEFT_CLICK_BLOCK)){
@@ -140,7 +133,7 @@ public class SCLPlayerListener implements Listener {
 				
 				if (plugin.toolMatch(tool,plugin.key) || plugin.toolMatch(tool,plugin.comboKey)){
 					event.setCancelled(true);
-					if (plugin.permit(player,"simplechestlock.lock")){
+					if (SCL.permit(player,"simplechestlock.lock")){
 						if (plugin.chests.isLocked(block)){
 							String owner = plugin.chests.getOwner(block);
 							if (owner.equalsIgnoreCase(player.getName())){
@@ -155,7 +148,7 @@ public class SCLPlayerListener implements Listener {
 									player.sendMessage(ChatColor.RED+"Error while unlocking your "+typeName);
 								}
 							}
-							else if (plugin.permit(player, "simplechestlock.ignoreowner")){
+							else if (SCL.permit(player, "simplechestlock.ignoreowner")){
 								Integer unlockedChests = plugin.chests.unlock(block);
 								Player ownerObject = Bukkit.getServer().getPlayer(owner);
 								if (unlockedChests == 1){
@@ -189,7 +182,7 @@ public class SCLPlayerListener implements Listener {
 								|| ( 
 										plugin.usePermissionsWhitelist
 										// Just checking for the indevidual block now, as the parent .* permission will grant them all.
-										&& plugin.permit(player,"simplechestlock.locktype."+block.getType().toString().toLowerCase())
+										&& SCL.permit(player,"simplechestlock.locktype."+block.getType().toString().toLowerCase())
 									)
 							){
 								boolean lockForSomeone = false;
@@ -199,7 +192,7 @@ public class SCLPlayerListener implements Listener {
 									lockForSomeone = true;
 								}
 								if (plugin.toolMatch(tool,plugin.comboKey)){
-									if (plugin.permit(player, "simplechestlock.usecombo")){
+									if (SCL.permit(player, "simplechestlock.usecombo")){
 										Inventory inv = player.getInventory();
 										if (
 												inv.getItem(0).getType().equals(Material.WOOL)
@@ -212,21 +205,16 @@ public class SCLPlayerListener implements Listener {
 											DyeColor[] combo = {tumbler1,tumbler2,tumbler3};
 											String comboString = tumbler1.toString()+","+tumbler2.toString()+","+tumbler3.toString();
 											Integer itemsLocked = plugin.chests.lock(player,block,combo);
-											if (itemsLocked == 1){
+                                            if (itemsLocked >= 1){
 												if (lockForSomeone){
-													player.sendMessage(ChatColor.GREEN+ucfirst(typeName)+" locked for "+locksFor+"!  Combo is "+comboString);
+													player.sendMessage(ChatColor.GREEN+itemsLocked.toString()+" "+typeName+SCL.plural(itemsLocked)+" locked for "+locksFor+"!  Combo is "+comboString);
 												}
 												else {
-													player.sendMessage(ChatColor.GREEN+ucfirst(typeName)+" locked!  Combo is "+comboString);
+													player.sendMessage(ChatColor.GREEN+itemsLocked.toString()+" "+typeName+SCL.plural(itemsLocked)+"s locked!  Combo is "+comboString);
 												}
-											}
-											else if (itemsLocked > 1){
-												if (lockForSomeone){
-													player.sendMessage(ChatColor.GREEN+itemsLocked.toString()+" "+typeName+"s locked for "+locksFor+"!  Combo is "+comboString);
-												}
-												else {
-													player.sendMessage(ChatColor.GREEN+itemsLocked.toString()+" "+typeName+"s locked!  Combo is "+comboString);
-												}
+                                                if (plugin.consumeKey && !SCL.permit(player,"simplechestlock.forfree")){
+                                                    player.getInventory().remove(plugin.comboKey);
+                                                }
 											}
 											else if (itemsLocked < 0){
 											    player.sendMessage(ChatColor.RED+"Something horrible happened while trying to lock!");
@@ -242,37 +230,26 @@ public class SCLPlayerListener implements Listener {
 									}
 								}
 								else {
-									Integer chestsLocked = plugin.chests.lock(player, block);
+									Integer itemsLocked = plugin.chests.lock(player, block);
 									String trustReminder = plugin.trustHandler.trustList(locksFor);
-									if (chestsLocked == 1){
+									if (itemsLocked >= 1){
 										if (lockForSomeone){
-											player.sendMessage(ChatColor.GREEN+ucfirst(typeName)+" locked for "+locksFor+"!");
-											if (trustReminder != null){
-											    player.sendMessage(ChatColor.GREEN+trustReminder);
-											}
-										}
-										else {
-											player.sendMessage(ChatColor.GREEN+ucfirst(typeName)+" locked!");
-											if (trustReminder != null){
-                                                player.sendMessage(ChatColor.GREEN+trustReminder);
-                                            }
-										}
-									}
-									else if (chestsLocked > 1){
-										if (lockForSomeone){
-											player.sendMessage(ChatColor.GREEN+chestsLocked.toString()+" "+typeName+"s locked for "+locksFor+"!");
+											player.sendMessage(ChatColor.GREEN+itemsLocked.toString()+" "+typeName+SCL.plural(itemsLocked)+" locked for "+locksFor+"!");
 											if (trustReminder != null){
                                                 player.sendMessage(ChatColor.GREEN+trustReminder);
                                             }
 										}
 										else {
-											player.sendMessage(ChatColor.GREEN+chestsLocked.toString()+" "+typeName+"s locked!");
+											player.sendMessage(ChatColor.GREEN+itemsLocked.toString()+" "+typeName+SCL.plural(itemsLocked)+" locked!");
 											if (trustReminder != null){
                                                 player.sendMessage(ChatColor.GREEN+trustReminder);
                                             }
 										}
+                                        if (plugin.consumeKey && !SCL.permit(player,"simplechestlock.forfree")){
+                                            player.getInventory().remove(plugin.key);
+                                        }
 									}
-									else if (chestsLocked < 0){
+									else if (itemsLocked < 0){
 									    player.sendMessage(ChatColor.RED+"Strange and horrible error encountered while locking!");
 									}
 								}

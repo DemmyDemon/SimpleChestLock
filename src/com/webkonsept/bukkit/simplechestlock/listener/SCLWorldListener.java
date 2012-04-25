@@ -7,7 +7,7 @@ import org.bukkit.event.world.WorldLoadEvent;
 import com.webkonsept.bukkit.simplechestlock.SCL;
 
 public class SCLWorldListener implements Listener {
-	SCL plugin;
+	final SCL plugin;
 	
 	public SCLWorldListener(SCL instance) {
 		plugin = instance;

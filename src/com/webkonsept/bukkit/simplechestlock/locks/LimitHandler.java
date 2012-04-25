@@ -8,8 +8,8 @@ import org.bukkit.entity.Player;
 import com.webkonsept.bukkit.simplechestlock.SCL;
 
 public class LimitHandler {
-    private SCL plugin;
-    private HashMap<String,Integer> limits = new HashMap<String,Integer>();
+    private final SCL plugin;
+    private final HashMap<String,Integer> limits = new HashMap<String,Integer>();
     
     public LimitHandler(SCL instance){
         plugin = instance;
@@ -25,18 +25,18 @@ public class LimitHandler {
     */
     
     public void loadFromConfig(){
-        plugin.verbose("Loading lockLimits from config");
+        SCL.verbose("Loading lockLimits from config");
         ConfigurationSection lockLimits = plugin.getConfig().getConfigurationSection("lockLimits");
         if (lockLimits != null){
             Map<String,Object> cfgGroups = lockLimits.getValues(false);
             if (cfgGroups != null){
-                plugin.verbose(cfgGroups.size() + " lockLimits groups found.");
+                SCL.verbose(cfgGroups.size() + " lockLimits groups found.");
                 for (String groupName : cfgGroups.keySet()){
                     Object rawValue = cfgGroups.get(groupName);
                     if (rawValue instanceof Integer){
                         Integer limit = (Integer)rawValue;
                         limits.put(groupName,limit);
-                        plugin.verbose(groupName + "-> " + limit);
+                        SCL.verbose(groupName + "-> " + limit);
                     }
                     else {
                         plugin.crap("lockLimits contains an unusable "+rawValue.getClass()+" ("+rawValue+")");
@@ -44,35 +44,35 @@ public class LimitHandler {
                 }
             }
             else {
-                plugin.verbose("Could not use lockLimits secion!  Invalid YAML?");
+                SCL.verbose("Could not use lockLimits secion!  Invalid YAML?");
             }
         }
         else {
-            plugin.verbose("lockLimits section does not exist.  Lock limits won't work!");
+            SCL.verbose("lockLimits section does not exist.  Lock limits won't work!");
         }
     }
     
     public int getLimit(Player player){
         Integer foundLimit = 0;
-        plugin.verbose("Checking lock limits for " + player.getName());
+        SCL.verbose("Checking lock limits for " + player.getName());
         for (String groupname : limits.keySet()){
-            if (plugin.permit(player,"simplechestlock.locklimit."+groupname)){
+            if (SCL.permit(player,"simplechestlock.locklimit."+groupname)){
                 foundLimit += limits.get(groupname);
-                plugin.verbose(player.getName() + " is in locklimit group " + groupname + ", limited to " + foundLimit);
+                SCL.verbose(player.getName() + " is in locklimit group " + groupname + ", limited to " + foundLimit);
             }
         }
         if (foundLimit <= 0){
-            plugin.verbose("NOTE:  User " + player.getName() + " can't lock stuff because he/she has a zero-or-less limit!");
+            SCL.verbose("NOTE:  User " + player.getName() + " can't lock stuff because he/she has a zero-or-less limit!");
         }
         else {
-            plugin.verbose(player.getName() + " is limited at " + foundLimit + " locks.");
+            SCL.verbose(player.getName() + " is limited at " + foundLimit + " locks.");
         }
         return foundLimit;
     }
     public int getLocksLeft(Player player){
         int locksUsed = getLocksUsed(player);
         int limit = getLimit(player);
-        plugin.verbose(player.getName() + " has used " + locksUsed + "/" + limit + " locks.");
+        SCL.verbose(player.getName() + " has used " + locksUsed + "/" + limit + " locks.");
         return limit - locksUsed;
     }
     public int getLocksUsed(Player player){
@@ -97,19 +97,19 @@ public class LimitHandler {
     }
     public boolean canLock(Player player, Integer wantToLock){
         if (!plugin.useLimits){
-            plugin.verbose("Locking authorized:  Limits disabled");
+            SCL.verbose("Locking authorized:  Limits disabled");
             return true;
         }
-        else if (plugin.permit(player,"simplechestlock.nolocklimit")){
-            plugin.verbose("Locking authorized:  User unlimited!");
+        else if (SCL.permit(player,"simplechestlock.nolocklimit")){
+            SCL.verbose("Locking authorized:  User unlimited!");
             return true;
         }
         else if (wantToLock <= getLocksLeft(player)){
-            plugin.verbose("Locking authorized:  Player has enough free locks");
+            SCL.verbose("Locking authorized:  Player has enough free locks");
             return true;
         }
         else {
-            plugin.verbose("Locking NOT authorized:  Not enough free locks!");
+            SCL.verbose("Locking NOT authorized:  Not enough free locks!");
             return false;
         }
     }

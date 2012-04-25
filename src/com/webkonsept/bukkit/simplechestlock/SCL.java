@@ -32,12 +32,17 @@ import com.webkonsept.bukkit.simplechestlock.locks.SCLList;
 import com.webkonsept.bukkit.simplechestlock.locks.TrustHandler;
 
 public class SCL extends JavaPlugin {
-	private Logger log = Logger.getLogger("Minecraft");
-	protected boolean verbose = false;
+	private static final Logger log = Logger.getLogger("Minecraft");
+
+    protected static final String pluginName = "SimpleChestLock";
+    protected static String pluginVersion = "???";
+
+	protected static boolean verbose = false;
 	public boolean lockpair = true;
 	public ItemStack key;
 	public ItemStack comboKey;
 	public boolean useKeyData = false;
+    public boolean consumeKey = false;
 	public boolean openMessage = true;
 	public boolean usePermissionsWhitelist = false;
 	public boolean whitelistMessage = true;
@@ -49,40 +54,41 @@ public class SCL extends JavaPlugin {
 	public int suckInterval = 100;
 	public boolean suckEffect = true;
 	
-	public Messaging messaging = new Messaging(this,3000);
+	public final Messaging messaging = new Messaging(3000);
 	
 	protected Server server = null;
 	
 	// Intended to hold the material in question and a boolean of weather or not it's double-lockable (like a double chest)
-	public HashMap<Material,Boolean> lockable = new HashMap<Material,Boolean>();
+	public final HashMap<Material,Boolean> lockable = new HashMap<Material,Boolean>();
 	
 	// Intended to hold the materials of items/blocked that can also be activated by left-click
-	public HashSet<Material> leftLocked = new HashSet<Material>();
+	public final HashSet<Material> leftLocked = new HashSet<Material>();
 	
 	// Holding the valid locations for a multi-lockable block
-	public HashSet<Material> lockIncludeVertical = new HashSet<Material>();
+	public final HashSet<Material> lockIncludeVertical = new HashSet<Material>();
 	
 	// Okay for the "sucks items" feature (Item containers only plx!)
-	public HashSet<Material> canSuck = new HashSet<Material>();
+	public final HashSet<Material> canSuck = new HashSet<Material>();
 	
 	// The "Lock as" feature!
-	public HashMap<String,String> locksAs = new HashMap<String,String>();
+	public final HashMap<String,String> locksAs = new HashMap<String,String>();
 	
 	private final SCLPlayerListener 	playerListener 	= new SCLPlayerListener(this);
 	private final SCLBlockListener 	blockListener 	= new SCLBlockListener(this);
 	private final SCLEntityListener 	entityListener 	= new SCLEntityListener(this);
 	private final SCLWorldListener	worldListener	= new SCLWorldListener(this);
-	public SCLList			chests			= new SCLList(this);
+	public final SCLList			chests			= new SCLList(this);
 	
 	@Override
 	public void onDisable() {
 		chests.save("Chests.txt");
-		this.out("Disabled!");
+		out("Disabled!");
 		getServer().getScheduler().cancelTasks(this);
 	}
 
 	@Override
 	public void onEnable() {
+        pluginVersion = getDescription().getVersion();
 	    loadConfig();
 		setupLockables();
 		
@@ -101,7 +107,7 @@ public class SCL extends JavaPlugin {
 		if (lockedChestsSuck){
 			server.getScheduler().scheduleSyncRepeatingTask(this,chests, suckInterval, suckInterval);
 		}
-		this.out("Enabled!");
+		// out("Enabled!"); // Done by Bukkit now
 	}
 	
 	public boolean onCommand(CommandSender sender, Command command, String commandLabel, String[] args) {
@@ -124,7 +130,7 @@ public class SCL extends JavaPlugin {
 			else if (args.length >= 1){
 				if (args[0].equalsIgnoreCase("reload")){
 					success = true;  // This is a valid command.
-					if ( !isPlayer  || this.permit(player, "simplechestlock.command.reload")){
+					if ( !isPlayer  || permit(player, "simplechestlock.command.reload")){
 						try {
 							getConfig().load(new File(getDataFolder(),"config.yml"));
 							this.loadConfig();
@@ -159,7 +165,7 @@ public class SCL extends JavaPlugin {
 						if (!isPlayer){
 							sender.sendMessage("Sorry mr. Console, you can't lock as anyone.  How will you swing the stick?");
 						}
-						else if (this.permit(player, "simplechestlock.command.as")){
+						else if (permit(player, "simplechestlock.command.as")){
 							locksAs.put(player.getName(),args[1]);
 							sender.sendMessage(ChatColor.RED+"[SimpleChestLock] Locking chests for "+args[1]);
 						}
@@ -179,7 +185,7 @@ public class SCL extends JavaPlugin {
 				}
 				else if (args[0].equalsIgnoreCase("save")){
 					success = true;
-					if (!isPlayer || this.permit(player,"simplechestlock.command.save")){
+					if (!isPlayer || permit(player,"simplechestlock.command.save")){
 						String saveFile = "Chests.txt";
 						if (args.length == 2){
 							saveFile = args[1];
@@ -208,7 +214,7 @@ public class SCL extends JavaPlugin {
 				}
 				else if (args[0].equalsIgnoreCase("status")){
 					success = true;
-					if (!isPlayer || this.permit(player,"simplechestlock.command.status")){
+					if (!isPlayer || permit(player,"simplechestlock.command.status")){
 						HashMap<String,Integer> ownership = new HashMap<String,Integer>();
 						int total = 0;
 						for (SCLItem item : chests.list.values()){
@@ -234,7 +240,7 @@ public class SCL extends JavaPlugin {
 				}
 				else if (args[0].equalsIgnoreCase("trust")){
 				    if (isPlayer){
-				        if (this.permit(player,"simplechestlock.command.trust")){
+				        if (permit(player,"simplechestlock.command.trust")){
 				            trustHandler.parseCommand(player,args);
 				        }
 				    }
@@ -242,7 +248,7 @@ public class SCL extends JavaPlugin {
 				}
 				else if (args[0].equalsIgnoreCase("list")){
 					success = true;
-					if (!isPlayer || this.permit(player, "simplechestlock.command.list")){
+					if (!isPlayer || permit(player, "simplechestlock.command.list")){
 						for (SCLItem item : chests.list.values()){
 							sender.sendMessage(item.getLocation().toString());
 						}
@@ -251,7 +257,7 @@ public class SCL extends JavaPlugin {
 				else if (args[0].equalsIgnoreCase("getkey")){
 				    success = true;
 				    if (isPlayer){
-				        if (this.permit(player,"simplechestlock.command.getkey")){
+				        if (permit(player, "simplechestlock.command.getkey")){
 				            player.getInventory().addItem(key.clone());
 				            player.sendMessage(ChatColor.GREEN+"One key coming right up!");
 				        }
@@ -266,7 +272,7 @@ public class SCL extends JavaPlugin {
 				else if (args[0].equalsIgnoreCase("getcombokey")){
 				    success = true;
                     if (isPlayer){
-                        if (this.permit(player,"simplechestlock.command.getcombokey")){
+                        if (permit(player, "simplechestlock.command.getcombokey")){
                             player.getInventory().addItem(comboKey.clone());
                             player.sendMessage(ChatColor.GREEN+"One combokey coming right up!");
                         }
@@ -285,7 +291,7 @@ public class SCL extends JavaPlugin {
 		}
 		return success;
 	}
-	public boolean permit(Player player,String[] permissions){ 
+	public static boolean permit(Player player,String[] permissions){
 		
 		if (player == null) return false;
 		if (permissions == null) return false;
@@ -304,23 +310,20 @@ public class SCL extends JavaPlugin {
 		return permit;
 		
 	}
-	public boolean permit(Player player,String permission){
+	public static boolean permit(Player player,String permission){
 		return permit(player,new String[]{permission});
 	}
-	public void out(String message) {
-		PluginDescriptionFile pdfFile = this.getDescription();
-		log.info("[" + pdfFile.getName()+ " " + pdfFile.getVersion() + "] " + message);
+	public static void out(String message) {
+        log.info("[" + pluginName + " v" + pluginVersion + "] " + message);
 	}
 	public void crap(String message){
-		PluginDescriptionFile pdfFile = this.getDescription();
-		log.severe("[" + pdfFile.getName()+ " " + pdfFile.getVersion() + "] " + message);
+        log.severe("[" + pluginName + " v" + pluginVersion + "] " + message);
 	}
-	public void verbose(String message){
-		if (!this.verbose){ return; }
-		PluginDescriptionFile pdfFile = this.getDescription();
-		log.info("[" + pdfFile.getName()+ " " + pdfFile.getVersion() + " VERBOSE] " + message);
+	public static void verbose(String message){
+		if (!verbose){ return; }
+		log.info("[" + pluginName + " v" + pluginVersion + " VERBOSE] " + message);
 	}
-	public String plural(int number) {
+	public static String plural(int number) {
 		if (number == 1){
 			return "";
 		}
@@ -409,7 +412,6 @@ public class SCL extends JavaPlugin {
 		File oldConfigFile = new File(this.getDataFolder(),"settings.yml");
 		getConfig().options().copyDefaults(true);
 		getConfig().addDefaults(new HashMap<String,Object>(){
-			private static final long serialVersionUID = 1L;// So shut up, Java.
 			{
 				put("verbose",false);
 				put("useLimits",false);
@@ -418,6 +420,7 @@ public class SCL extends JavaPlugin {
 				put("comboKey",352);
 				put("comboKeyDurability",0);
 				put("useKeyDurability",false);
+                put("consumeKey",false);
 				
 				put("lockpair",true);
 				put("usePermissionsWhitelist",false);
@@ -461,6 +464,8 @@ public class SCL extends JavaPlugin {
 		Integer comboKeyInt = getConfig().getInt("comboKey",352); // Bone
 		Integer comboKeyDurability = getConfig().getInt("comboKeyDurability",0);
 		useKeyData = getConfig().getBoolean("useKeyDurability",false);
+
+        consumeKey = getConfig().getBoolean("consumeKey",false);
 		
 		lockedChestsSuck = getConfig().getBoolean("lockedChestsSuck",false);
 		suckRange = getConfig().getInt("suckRange",3);
@@ -512,14 +517,7 @@ public class SCL extends JavaPlugin {
 	    if (candidate1 == null || candidate2 == null){
 	        return false;
 	    }
-	    else if (
-	            candidate1.getType().equals(candidate2.getType())
-	            && candidate1.getData().equals(candidate2.getData())
-	    ){
-	        return true;
-	    }
-	    else {
-	        return false;
-	    }
+	    else return candidate1.getType().equals(candidate2.getType())
+                && candidate1.getData().equals(candidate2.getData());
 	}
 }

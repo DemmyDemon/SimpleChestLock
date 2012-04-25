@@ -11,6 +11,7 @@ keyDurability: 0
 comboKey: 352
 comboKeyDurability: 0
 useKeyDurability: false
+consumeKey: false
 openMessage: true
 useLimits: false
 lockLimits:

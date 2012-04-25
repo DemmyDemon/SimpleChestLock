@@ -6,14 +6,12 @@ import java.util.HashMap;
 import org.bukkit.entity.Player;
 
 public class Messaging {
-    SCL plugin;
     int mtd = 3000;
-    Calendar cal = Calendar.getInstance();
+    final Calendar cal = Calendar.getInstance();
     
-    HashMap<String,Long> playerTime = new HashMap<String,Long>();
+    final HashMap<String,Long> playerTime = new HashMap<String,Long>();
     
-    public Messaging (SCL instance,Integer minimumTimeDifference) {
-        plugin = instance;
+    public Messaging (Integer minimumTimeDifference) {
         mtd = minimumTimeDifference;
     }
     
@@ -25,7 +23,7 @@ public class Messaging {
                 playerTime.put(playerName,now());
             }
             else {
-                plugin.verbose("Throttling suppressed message '" + message + "' for " + playerName);
+                SCL.verbose("Throttling suppressed message '" + message + "' for " + playerName);
             }
         }
         else {
