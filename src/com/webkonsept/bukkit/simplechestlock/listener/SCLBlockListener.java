@@ -35,7 +35,7 @@ public class SCLBlockListener implements Listener {
 			}
 			else {
 				plugin.chests.unlock(block);
-				if (player.getName().equalsIgnoreCase(owner)){
+				if (!player.getName().equalsIgnoreCase(owner)){
 					Player ownerPlayer = plugin.getServer().getPlayer(owner);
 					if (ownerPlayer != null){
 						ownerPlayer.sendMessage(ChatColor.RED+player.getName()+" broke one of your locked blocks.");

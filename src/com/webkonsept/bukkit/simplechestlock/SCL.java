@@ -82,7 +82,7 @@ public class SCL extends JavaPlugin {
 	@Override
 	public void onDisable() {
 		chests.save("Chests.txt");
-		out("Disabled!");
+		// out("Disabled!"); // Bukkit already does this
 		getServer().getScheduler().cancelTasks(this);
 	}
 
