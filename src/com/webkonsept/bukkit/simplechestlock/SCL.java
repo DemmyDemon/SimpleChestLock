@@ -1,8 +1,5 @@
 package com.webkonsept.bukkit.simplechestlock;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.logging.Logger;
@@ -13,12 +10,10 @@ import org.bukkit.Server;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
-import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -37,25 +32,14 @@ public class SCL extends JavaPlugin {
     protected static final String pluginName = "SimpleChestLock";
     protected static String pluginVersion = "???";
 
-	protected static boolean verbose = false;
-	public boolean lockpair = true;
-	public ItemStack key;
-	public ItemStack comboKey;
-	public boolean useKeyData = false;
-    public boolean consumeKey = false;
-	public boolean openMessage = true;
-	public boolean usePermissionsWhitelist = false;
-	public boolean whitelistMessage = true;
-	public boolean lockedChestsSuck = false;
-	public int suckRange = 3;
-	public TrustHandler trustHandler;
-	public LimitHandler limitHandler;
-	public boolean useLimits = false;
-	public int suckInterval = 100;
-	public boolean suckEffect = true;
-	
+    protected static boolean verbose = false;
+
+    public Settings cfg = null;
+
 	public final Messaging messaging = new Messaging(3000);
-	
+    public TrustHandler trustHandler;
+    public LimitHandler limitHandler;
+
 	protected Server server = null;
 	
 	// Intended to hold the material in question and a boolean of weather or not it's double-lockable (like a double chest)
@@ -89,7 +73,7 @@ public class SCL extends JavaPlugin {
 	@Override
 	public void onEnable() {
         pluginVersion = getDescription().getVersion();
-	    loadConfig();
+        cfg = new Settings(this);
 		setupLockables();
 		
 		trustHandler = new TrustHandler(this);
@@ -104,10 +88,9 @@ public class SCL extends JavaPlugin {
 		pm.registerEvents(entityListener,this);
 		pm.registerEvents(worldListener,this);
 		
-		if (lockedChestsSuck){
-			server.getScheduler().scheduleSyncRepeatingTask(this,chests, suckInterval, suckInterval);
+		if (cfg.lockedChestsSuck()){
+			server.getScheduler().scheduleSyncRepeatingTask(this,chests, cfg.suckInterval(), cfg.suckInterval());
 		}
-		// out("Enabled!"); // Done by Bukkit now
 	}
 	
 	public boolean onCommand(CommandSender sender, Command command, String commandLabel, String[] args) {
@@ -131,25 +114,14 @@ public class SCL extends JavaPlugin {
 				if (args[0].equalsIgnoreCase("reload")){
 					success = true;  // This is a valid command.
 					if ( !isPlayer  || permit(player, "simplechestlock.command.reload")){
-						try {
-							getConfig().load(new File(getDataFolder(),"config.yml"));
-							this.loadConfig();
-						} catch (FileNotFoundException e) {
-							crap("Configuration file went away!");
-						} catch (IOException e) {
-							e.printStackTrace();
-							crap("IOException while reading the config file!  "+e.getMessage());
-						} catch (InvalidConfigurationException e) {
-							e.printStackTrace();
-							crap("Looks like you suck at YAML.  Try again.");
-						}
+                        cfg.load();
 						String saveFile = "Chests.txt";
 						if (args.length == 2){
 							saveFile = args[1];
 						}
 						chests.load(saveFile);
 						server.getScheduler().cancelTasks(this);
-						if (lockedChestsSuck){
+						if (cfg.lockedChestsSuck()){
 							server.getScheduler().scheduleSyncRepeatingTask(this,chests, 100, 100);
 						}
 						sender.sendMessage(ChatColor.GREEN+"Successfully reloaded configuration and locks from "+saveFile);
@@ -202,7 +174,7 @@ public class SCL extends JavaPlugin {
 				    if (!isPlayer){
 				        sender.sendMessage("Mr. Console, you can't lock anything at all, so your limit is -1!");
 				    }
-				    else if (!useLimits){
+				    else if (!cfg.useLimits()){
 				        sender.sendMessage(ChatColor.GOLD+"This server has no lock limits");
 				    }
 				    else if (permit(player,"simplechestlock.nolimit")){
@@ -258,7 +230,7 @@ public class SCL extends JavaPlugin {
 				    success = true;
 				    if (isPlayer){
 				        if (permit(player, "simplechestlock.command.getkey")){
-				            player.getInventory().addItem(key.clone());
+				            player.getInventory().addItem(cfg.key().clone());
 				            player.sendMessage(ChatColor.GREEN+"One key coming right up!");
 				        }
 				        else {
@@ -273,7 +245,7 @@ public class SCL extends JavaPlugin {
 				    success = true;
                     if (isPlayer){
                         if (permit(player, "simplechestlock.command.getcombokey")){
-                            player.getInventory().addItem(comboKey.clone());
+                            player.getInventory().addItem(cfg.comboKey().clone());
                             player.sendMessage(ChatColor.GREEN+"One combokey coming right up!");
                         }
                         else {
@@ -316,7 +288,7 @@ public class SCL extends JavaPlugin {
 	public static void out(String message) {
         log.info("[" + pluginName + " v" + pluginVersion + "] " + message);
 	}
-	public void crap(String message){
+	public static void crap(String message){
         log.severe("[" + pluginName + " v" + pluginVersion + "] " + message);
 	}
 	public static void verbose(String message){
@@ -407,112 +379,7 @@ public class SCL extends JavaPlugin {
 			return false;
 		}
 	}
-	public void loadConfig() {
-		File configFile = new File(this.getDataFolder(),"config.yml");
-		File oldConfigFile = new File(this.getDataFolder(),"settings.yml");
-		getConfig().options().copyDefaults(true);
-		getConfig().addDefaults(new HashMap<String,Object>(){
-			{
-				put("verbose",false);
-				put("useLimits",false);
-				put("key",280);
-				put("keyDurability",0);
-				put("comboKey",352);
-				put("comboKeyDurability",0);
-				put("useKeyDurability",false);
-                put("consumeKey",false);
-				
-				put("lockpair",true);
-				put("usePermissionsWhitelist",false);
-				put("whitelistMessage",true);
-				put("openMessage",true);
-				
-                put("lockedChestsSuck",false);
-                put("suckRange",3);
-                put("suckInterval",100);
-                put("suckEffect",true);
-				
-			}
-		});
-		
-		if (oldConfigFile.exists()){
-			out("Old configuration file found, attempting to move to one!");
-			try {
-				getConfig().load(oldConfigFile);
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-				crap("Uh, old config file went away.");
-			} catch (IOException e) {
-				e.printStackTrace();
-				crap("Permissions issues on old config file, perhaps?  Whatever, it's gone.");
-			} catch (InvalidConfigurationException e) {
-				e.printStackTrace();
-				crap("Old config file isn't valid, and will be clobbered.");
-			}
-			oldConfigFile.delete();
-		}
-		verbose = getConfig().getBoolean("verbose", false);
-	    lockpair = getConfig().getBoolean("lockpair", true);
-	    usePermissionsWhitelist = getConfig().getBoolean("usePermissionsWhitelist",false);
-	    whitelistMessage = getConfig().getBoolean("whitelistMessage",true);
-	    openMessage = getConfig().getBoolean("openMessage", true);
-	    
-	    useLimits = getConfig().getBoolean("useLimits",false);
-		
-		Integer keyInt = getConfig().getInt("key",280); // Stick
-		Integer keyDurability = getConfig().getInt("keyDurability",0);
-		Integer comboKeyInt = getConfig().getInt("comboKey",352); // Bone
-		Integer comboKeyDurability = getConfig().getInt("comboKeyDurability",0);
-		useKeyData = getConfig().getBoolean("useKeyDurability",false);
 
-        consumeKey = getConfig().getBoolean("consumeKey",false);
-		
-		lockedChestsSuck = getConfig().getBoolean("lockedChestsSuck",false);
-		suckRange = getConfig().getInt("suckRange",3);
-		suckInterval = getConfig().getInt("suckInterval",100);
-		suckEffect = getConfig().getBoolean("suckEffect",true);
-		
-		Material keyMaterial = Material.getMaterial(keyInt);
-		Material comboKeyMaterial = Material.getMaterial(comboKeyInt);
-		if (keyMaterial == null){
-			keyMaterial = Material.STICK;
-			useKeyData = false;
-			this.crap("OY!  Material ID "+keyInt+" is not a real material.  Falling back to using STICK (ID 280) for the key.");
-		}
-		if (comboKeyMaterial == null){
-			comboKeyMaterial = Material.BONE;
-			useKeyData = false;
-			this.crap("OY!  Materail ID "+comboKeyInt+" is not a real material. Falling back to using BONE (ID 352) for the combo key.");
-		}
-		
-		key = new ItemStack(keyMaterial);
-		key.setAmount(1);
-		comboKey = new ItemStack(comboKeyMaterial);
-		comboKey.setAmount(1);
-		
-		if (useKeyData){
-		    key.setDurability((short)(int)keyDurability);
-		    comboKey.setDurability((short)(int)comboKeyDurability);
-		}
-		
-		if (!configFile.exists()){
-		    saveConfig();
-		    /*
-			try {
-				getConfig().save(configFile);
-			} catch (IOException e) {
-				e.printStackTrace();
-				this.crap("IOError while creating config file: "+e.getMessage());
-			}
-			*/
-		}
-		if (trustHandler != null){
-		    trustHandler.loadFromConfig();
-		}
-		if (limitHandler != null){
-		    limitHandler.loadFromConfig();
-		}
-	}
 	public boolean toolMatch (ItemStack candidate1,ItemStack candidate2){
 	    if (candidate1 == null || candidate2 == null){
 	        return false;

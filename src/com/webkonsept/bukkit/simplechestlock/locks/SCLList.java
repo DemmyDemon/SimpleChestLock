@@ -144,9 +144,9 @@ public class SCLList implements Runnable {
 						Inventory inventory = container.getInventory();
 						if (inventory.firstEmpty() != -1){ // No sense in sucking at all if it doesn't have space to begin with!
 							ArrayList<Entity> entityList = new ArrayList<Entity>();
-							for (Chunk inChunk : getNearbyChunks(block,plugin.suckRange)){
+							for (Chunk inChunk : getNearbyChunks(block,plugin.cfg.suckRange())){
 								for (Entity entity : inChunk.getEntities()){
-									if (entity instanceof Item && entity.getLocation().distance(block.getLocation()) <= plugin.suckRange){
+									if (entity instanceof Item && entity.getLocation().distance(block.getLocation()) <= plugin.cfg.suckRange()){
 										entityList.add(entity);
 									}
 								}
@@ -155,10 +155,10 @@ public class SCLList implements Runnable {
 								ItemStack original = ((Item)entity).getItemStack();
 								ItemStack itemFound = original.clone();
 								if ( inventory.firstEmpty() != -1 && !sucked.contains(entity.getUniqueId()) ){
-								    if (entity.getTicksLived() >= plugin.suckInterval){
+								    if (entity.getTicksLived() >= plugin.cfg.suckInterval()){
 								        inventory.addItem(itemFound);
 								        entity.remove();
-								        if (plugin.suckEffect){
+								        if (plugin.cfg.suckEffect()){
 								            item.getLocation().getWorld().playEffect(item.getLocation(), Effect.CLICK2,0);
 								        }
 								    }
@@ -249,14 +249,25 @@ public class SCLList implements Runnable {
 	public Integer lock(Player player,Block block,DyeColor[] combo){
 		if (player == null || block == null || list == null ) return 0;
         if (plugin.canLock(block)){
-            
+
+            if (plugin.cfg.useWorldGuard()){
+                if (! plugin.cfg.worldGuard().canBuild(player,block)){
+                    SCL.verbose("WorldGuard says NO to locking a block for "+player.getName());
+                    player.sendMessage(ChatColor.RED+"Sorry, this region is disallowed for you.");
+                    return 0;
+                }
+            }
+            else {
+                SCL.verbose("useWorldGuard is FALSE");
+            }
+
             String lockAs = player.getName();
             if (plugin.locksAs.containsKey(lockAs)){
                 lockAs = plugin.locksAs.get(lockAs);
             }
             
             HashSet<Block> lockBlocks = new HashSet<Block>();
-            if (plugin.lockpair && plugin.canDoubleLock(block)){
+            if (plugin.cfg.lockpair() && plugin.canDoubleLock(block)){
                 lockBlocks.addAll(this.getTypedNeighbours(block));
             }
             else {
@@ -303,7 +314,7 @@ public class SCLList implements Runnable {
 			if (list != null){
 				
 				Integer unlockedItems = 0;
-				if (plugin.lockpair && plugin.canDoubleLock(block)){
+				if (plugin.cfg.lockpair() && plugin.canDoubleLock(block)){
 					unlockedItems = this.removeNeighboring(block);
 				}
 				else {
@@ -371,7 +382,7 @@ public class SCLList implements Runnable {
 	}
 	@Override
 	public void run() {
-		if (plugin.lockedChestsSuck){
+		if (plugin.cfg.lockedChestsSuck()){
 			this.suck();
 		}
 	}

@@ -29,26 +29,26 @@ public class SCLBlockListener implements Listener {
 		if (plugin.chests.isLocked(block)){
 			Player player = event.getPlayer();
 			String owner = plugin.chests.getOwner(block);
-			if (owner.equalsIgnoreCase(player.getName()) && ! SCL.permit(player,"simplechestlock.ignoreowner")){
-				plugin.messaging.throttledMessage(player,ChatColor.RED+"You can't break "+owner+"'s block!");
-				event.setCancelled(true);
+			if (owner.equalsIgnoreCase(player.getName()) || SCL.permit(player,"simplechestlock.ignoreowner")){
+                plugin.chests.unlock(block);
+                if (!player.getName().equalsIgnoreCase(owner)){
+                    Player ownerPlayer = plugin.getServer().getPlayer(owner);
+                    if (ownerPlayer != null){
+                        ownerPlayer.sendMessage(ChatColor.RED+player.getName()+" broke one of your locked blocks.");
+                        player.sendMessage(ChatColor.RED+"Owner informed that you broke the locked block!");
+                    }
+                    else {
+                        player.sendMessage(ChatColor.RED+"Locked block broken, but owner is offline and not informed.");
+                    }
+
+                }
+                else {
+                    player.sendMessage(ChatColor.GREEN+"Locked block broken!");
+                }
 			}
 			else {
-				plugin.chests.unlock(block);
-				if (!player.getName().equalsIgnoreCase(owner)){
-					Player ownerPlayer = plugin.getServer().getPlayer(owner);
-					if (ownerPlayer != null){
-						ownerPlayer.sendMessage(ChatColor.RED+player.getName()+" broke one of your locked blocks.");
-						player.sendMessage(ChatColor.RED+"Owner informed that you broke the locked block!");
-					}
-					else {
-						player.sendMessage(ChatColor.RED+"Locked block broken, but owner is offline and not informed.");
-					}
-					
-				}
-				else {
-					player.sendMessage(ChatColor.GREEN+"Locked block broken!");
-				}
+                plugin.messaging.throttledMessage(player,ChatColor.RED+"You can't break "+owner+"'s block!");
+                event.setCancelled(true);
 			}
 		}
 	}

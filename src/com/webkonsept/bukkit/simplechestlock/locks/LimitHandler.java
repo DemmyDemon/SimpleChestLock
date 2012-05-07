@@ -88,7 +88,7 @@ public class LimitHandler {
     public String usedString(Player player){
         int locksUsed = getLocksUsed(player);
         int limit = getLimit(player);
-        if (plugin.useLimits){
+        if (plugin.cfg.useLimits()){
             return locksUsed+"/"+limit+" locks used";
         }
         else {
@@ -96,7 +96,7 @@ public class LimitHandler {
         }
     }
     public boolean canLock(Player player, Integer wantToLock){
-        if (!plugin.useLimits){
+        if (!plugin.cfg.useLimits()){
             SCL.verbose("Locking authorized:  Limits disabled");
             return true;
         }

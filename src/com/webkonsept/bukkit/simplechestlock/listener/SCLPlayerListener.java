@@ -50,7 +50,7 @@ public class SCLPlayerListener implements Listener {
 					|| ( 
 						event.getAction().equals(Action.LEFT_CLICK_BLOCK)
 						&& plugin.leftLocked.contains(block.getType())
-						&& !(plugin.toolMatch(toolUsed,plugin.key) || plugin.toolMatch(toolUsed,plugin.comboKey))
+						&& !(plugin.toolMatch(toolUsed,plugin.cfg.key()) || plugin.toolMatch(toolUsed,plugin.cfg.comboKey()))
 					)
 					|| event.getAction().equals(Action.PHYSICAL)
 			){
@@ -99,13 +99,13 @@ public class SCLPlayerListener implements Listener {
 					}
 					else if (! owner.equalsIgnoreCase(player.getName()) && ignoreOwner){
 						SCL.verbose(player.getName() + " was let into " + owner + "'s " + typeName + ", ignoring owner.");
-						if (plugin.openMessage){
+						if (plugin.cfg.openMessage()){
 						    player.sendMessage(ChatColor.GREEN+"Access granted to "+owner+"'s "+typeName);
 						}
 					}
 					else {
 						SCL.verbose(player.getName() + " was let into the " + typeName);
-						if (plugin.openMessage){
+						if (plugin.cfg.openMessage()){
 							if (comboLocked){
 								String comboString = plugin.chests.getComboString(block);
 								player.sendMessage(ChatColor.GREEN+"Lock combination is "+comboString);
@@ -131,7 +131,7 @@ public class SCLPlayerListener implements Listener {
 				ItemStack tool = inHand.clone();
 				tool.setAmount(1);
 				
-				if (plugin.toolMatch(tool,plugin.key) || plugin.toolMatch(tool,plugin.comboKey)){
+				if (plugin.toolMatch(tool,plugin.cfg.key()) || plugin.toolMatch(tool,plugin.cfg.comboKey())){
 					event.setCancelled(true);
 					if (SCL.permit(player,"simplechestlock.lock")){
 						if (plugin.chests.isLocked(block)){
@@ -178,9 +178,9 @@ public class SCLPlayerListener implements Listener {
 						}
 						else {
 							if (
-								!(plugin.usePermissionsWhitelist)
+								!(plugin.cfg.usePermissionsWhitelist())
 								|| ( 
-										plugin.usePermissionsWhitelist
+										plugin.cfg.usePermissionsWhitelist()
 										// Just checking for the indevidual block now, as the parent .* permission will grant them all.
 										&& SCL.permit(player,"simplechestlock.locktype."+block.getType().toString().toLowerCase())
 									)
@@ -191,7 +191,7 @@ public class SCLPlayerListener implements Listener {
 									locksFor = plugin.locksAs.get(player.getName());
 									lockForSomeone = true;
 								}
-								if (plugin.toolMatch(tool,plugin.comboKey)){
+								if (plugin.toolMatch(tool,plugin.cfg.comboKey())){
 									if (SCL.permit(player, "simplechestlock.usecombo")){
 										Inventory inv = player.getInventory();
 										if (
@@ -212,8 +212,8 @@ public class SCLPlayerListener implements Listener {
 												else {
 													player.sendMessage(ChatColor.GREEN+itemsLocked.toString()+" "+typeName+SCL.plural(itemsLocked)+"s locked!  Combo is "+comboString);
 												}
-                                                if (plugin.consumeKey && !SCL.permit(player,"simplechestlock.forfree")){
-                                                    player.getInventory().remove(plugin.comboKey);
+                                                if (plugin.cfg.consumeKey() && !SCL.permit(player,"simplechestlock.forfree")){
+                                                    player.getInventory().remove(plugin.cfg.comboKey());
                                                 }
 											}
 											else if (itemsLocked < 0){
@@ -245,8 +245,8 @@ public class SCLPlayerListener implements Listener {
                                                 player.sendMessage(ChatColor.GREEN+trustReminder);
                                             }
 										}
-                                        if (plugin.consumeKey && !SCL.permit(player,"simplechestlock.forfree")){
-                                            player.getInventory().remove(plugin.key);
+                                        if (plugin.cfg.consumeKey() && !SCL.permit(player,"simplechestlock.forfree")){
+                                            player.getInventory().remove(plugin.cfg.key());
                                         }
 									}
 									else if (itemsLocked < 0){
@@ -254,7 +254,7 @@ public class SCLPlayerListener implements Listener {
 									}
 								}
 							}
-							else if (plugin.usePermissionsWhitelist && plugin.whitelistMessage){
+							else if (plugin.cfg.usePermissionsWhitelist() && plugin.cfg.whitelistMessage()){
 								player.sendMessage(ChatColor.RED+"Sorry, you are not allowed to lock "+block.getType().toString());
 							}
 						}
