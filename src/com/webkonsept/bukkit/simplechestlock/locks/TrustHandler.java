@@ -176,7 +176,7 @@ public class TrustHandler {
             }
         }
         else {
-            plugin.crap("Trust handler asked to handle "+args[0]);
+            SCL.crap("Trust handler asked to handle "+args[0]);
         }
     }
 }

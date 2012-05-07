@@ -115,6 +115,7 @@ public class SCL extends JavaPlugin {
 					success = true;  // This is a valid command.
 					if ( !isPlayer  || permit(player, "simplechestlock.command.reload")){
                         cfg.load();
+                        cfg.report(sender);
 						String saveFile = "Chests.txt";
 						if (args.length == 2){
 							saveFile = args[1];

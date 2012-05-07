@@ -47,7 +47,7 @@ public class SCLList implements Runnable {
 				try {
 					item.retryLocation(plugin);
 				} catch (ParseException e) {
-					plugin.crap("Failed to retry item loading, parse error during location retry: "+e.getMessage());
+					SCL.crap("Failed to retry item loading, parse error during location retry: " + e.getMessage());
 				}
 				successful.add(item);
 			}
@@ -67,7 +67,7 @@ public class SCLList implements Runnable {
 				lockedItemFile.createNewFile();
 			} catch (IOException e) {
 				e.printStackTrace();
-				plugin.crap("FAILED TO CREATE FILE FOR LOCKS ("+filename+"): "+e.getMessage());
+				SCL.crap("FAILED TO CREATE FILE FOR LOCKS ("+filename+"): "+e.getMessage());
 			}
 		}
 		
@@ -84,7 +84,7 @@ public class SCLList implements Runnable {
 						SCLItem item = new SCLItem(plugin,line);
 						list.put(item.getLocation(),item);
 					} catch(ParseException e){
-						plugin.crap("Failed to parse line "+lineNumber+" from locks file: "+e.getMessage());
+						SCL.crap("Failed to parse line "+lineNumber+" from locks file: "+e.getMessage());
 					}
 				}
 				else {
@@ -94,10 +94,10 @@ public class SCLList implements Runnable {
 			in.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
-			plugin.crap("OMG JAVA!  The file I just created DOES NOT EXIST?!  Damn.");
+			SCL.crap("OMG JAVA!  The file I just created DOES NOT EXIST?!  Damn.");
 		} catch (IOException e) {
 			e.printStackTrace();
-			plugin.crap("Okay, crap, IOException while reading "+filename+": "+e.getMessage());
+			SCL.crap("Okay, crap, IOException while reading "+filename+": "+e.getMessage());
 		}
 	}
 	public void save(String filename) {
@@ -108,7 +108,7 @@ public class SCLList implements Runnable {
 			try {
 				lockedItemsFile.createNewFile();
 			} catch (IOException e) {
-				plugin.crap("FAILED TO CREATE FILE FOR LOCKS CALLED "+filename);
+			    SCL.crap("FAILED TO CREATE FILE FOR LOCKS CALLED "+filename);
 				e.printStackTrace();
 			}
 		}
@@ -125,10 +125,10 @@ public class SCLList implements Runnable {
 			out.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
-			plugin.crap("OMG JAVA!  The file I just created DOES NOT EXIST?!  Damn.");
+			SCL.crap("OMG JAVA!  The file I just created DOES NOT EXIST?!  Damn.");
 		} catch (IOException e) {
 			e.printStackTrace();
-			plugin.crap("Okay, crap, IOExeption while writing "+filename+": "+e.getMessage());
+			SCL.crap("Okay, crap, IOExeption while writing "+filename+": "+e.getMessage());
 		}
 	}
 	public void suck(){
@@ -248,17 +248,24 @@ public class SCLList implements Runnable {
     }
 	public Integer lock(Player player,Block block,DyeColor[] combo){
 		if (player == null || block == null || list == null ) return 0;
+        String blockName = block.getType().toString().replace("_"," ").toLowerCase();
         if (plugin.canLock(block)){
 
             if (plugin.cfg.useWorldGuard()){
-                if (! plugin.cfg.worldGuard().canBuild(player,block)){
-                    SCL.verbose("WorldGuard says NO to locking a block for "+player.getName());
-                    player.sendMessage(ChatColor.RED+"Sorry, this region is disallowed for you.");
+                if (plugin.permit(player,"simplechestlock.ignoreRegion")){
+                    SCL.verbose("Not performing region check on "+player.getName());
+                }
+                else if (plugin.cfg.worldGuard().canBuild(player,block)){
+                    SCL.verbose("WorldGuard says it's fine for "+player.getName()+" to lock this "+blockName);
+                }
+                else {
+                    SCL.verbose("WorldGuard says NO to locking a "+blockName+" for "+player.getName());
+                    player.sendMessage(ChatColor.RED+"[SCL WorldGuard check] Sorry, locking here is forbidden.");
                     return 0;
                 }
             }
             else {
-                SCL.verbose("useWorldGuard is FALSE");
+                SCL.verbose("Ignoring WorldGuard alltogether.");
             }
 
             String lockAs = player.getName();
@@ -276,7 +283,7 @@ public class SCLList implements Runnable {
             
             if (plugin.limitHandler.canLock(player, lockBlocks.size())){
                 for (Block lockMe : lockBlocks){
-                    SCL.verbose("Locking " + lockMe.getType().toString());
+                    SCL.verbose("Locking " + blockName);
                     SCLItem newItem = new SCLItem(lockAs,lockMe);
                     if (combo != null){
                         newItem.setCombo(combo);
@@ -289,13 +296,13 @@ public class SCLList implements Runnable {
                 return lockBlocks.size();
             }
             else {
-                player.sendMessage(ChatColor.RED+"You do not have enough free locks to lock this!");
+                player.sendMessage(ChatColor.RED+"You do not have enough free locks to lock this "+blockName+"!");
                 player.sendMessage(ChatColor.YELLOW+plugin.limitHandler.usedString(player));
                 return 0;
             }
         }
         else {
-            player.sendMessage(ChatColor.RED+"This is not a lockable block!");
+            player.sendMessage(ChatColor.RED+"This "+blockName+" is not a lockable block!");
             return 0;
         }
 	}

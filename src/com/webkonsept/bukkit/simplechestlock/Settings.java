@@ -1,8 +1,11 @@
 package com.webkonsept.bukkit.simplechestlock;
 
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
@@ -52,6 +55,39 @@ public class Settings {
     public boolean useWorldGuard(){return useWorldGuard;}
     public WorldGuardPlugin worldGuard(){return worldGuard;}
 
+    public void report(CommandSender target){
+        target.sendMessage(ChatColor.GOLD+"SimpleChestLock settings");
+        indentedMessages(target,
+                "Verbose mode: " + boolColor(SCL.verbose),
+                "Lock pairs: " + boolColor(lockpair),
+                "Access message: " + boolColor(openMessage),
+                "Limit number of locked blocks: " + boolColor(useLimits),
+                "WorldGuard support enabled: " + boolColor(useWorldGuard),
+                "",
+                "Key item: " + key.getType().toString() + ":" + key.getDurability(),
+                "Combo key item; " + comboKey.getType().toString() + ":" + comboKey.getDurability(),
+                "Check key data: " + boolColor(useKeyData),
+                "Consume key: " + boolColor(consumeKey),
+                "",
+                "Permissions whitelist: " + boolColor(usePermissionsWhitelist),
+                "Whitelist message: " + boolColor(whitelistMessage),
+                "",
+                "Locked containers suck up items: " + boolColor(lockedChestsSuck),
+                "Item suck range: " + suckRange + " blocks",
+                "Item suck interval: " + suckInterval + " ticks",
+                "Click sound when sucking: " + boolColor(suckEffect)
+        );
+    }
+    private void indentedMessages(CommandSender target, String... messages){
+        for (String message : messages){
+            target.sendMessage("    "+message);
+        }
+    }
+
+    public String boolColor(boolean what){
+        /** Returns a green ON if TRUE and RED OFF if FALSE. */
+        return what ? ChatColor.GREEN+"ON" : ChatColor.RED+"OFF";
+    }
 
     public void load() {
         File configFile = new File(plugin.getDataFolder(),"config.yml");

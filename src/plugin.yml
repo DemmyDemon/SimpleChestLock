@@ -1,6 +1,6 @@
 name: SimpleChestLock
 main: com.webkonsept.bukkit.simplechestlock.SCL
-version: 0.20.1
+version: 1.0.0-beta1
 branch: stable
 thread: http://forums.bukkit.org/threads/SimpleChestLock.17557/
 website: http://minecraft.webkonsept.com/plugins/details/SimpleChestLock.html
@@ -15,7 +15,7 @@ categories: [ SEC, MECH ]
 description: Gives players the ability to lock chests and other blocks.
 maintainer: DemmyDemon
 authors: [DemmyDemon]
-softdepend: [MultiVerse,Multiverse-Core,MyWorlds,emericaWorlds,WormholeExtreme]
+softdepend: [MultiVerse,Multiverse-Core,MyWorlds,emericaWorlds,WormholeExtreme,WorldGuard]
 permissions:
     simplechestlock.*:
         description: Full access
@@ -61,6 +61,9 @@ permissions:
     simplechestlock.command.getcombokey:
         description: Access to getting the currently configured COMBO key item
         default: op
+    simplechestlock.ignoreRegion:
+        description: Ignore any WorldGuard restrictions, even when WorldGuard support is enabled
+        default: false
     simplechestlock.ignoreowner:
         description: Unlock any item, use any item.
         default: op
