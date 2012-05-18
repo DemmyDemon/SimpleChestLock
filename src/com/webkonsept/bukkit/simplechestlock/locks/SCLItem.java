@@ -72,15 +72,14 @@ public class SCLItem {
 		
 		if (world != null && X != null && Y != null && Z != null){
 			Location location = new Location(world,X,Y,Z);
-			Material type = location.getBlock().getType();
-			if(plugin.lockable.containsKey(type)){
+            Block block = location.getBlock();
+			if(plugin.canLock(block)){
 				SCL.verbose("Added location to protection list: Player(" + playerName + ") World(" + world + ") X(" + X + ") Y(" + Y + ") Z(" + Z + ")");
 				isLocationDeferred = false;
 				this.location = location;
-				
 			}
 			else {
-				throw new ParseException(type.toString()+" not a lockable block at World("+world+") X("+X+") Y("+Y+") Z("+Z+")! "+playerName+"'s block was moved, or severe configuration change?",0);
+				throw new ParseException(block.getType().toString()+" not a lockable block at World("+world+") X("+X+") Y("+Y+") Z("+Z+")! "+playerName+"'s block was moved, or severe configuration change?",0);
 			}
 		}
 		else if (world == null && X != null && Y != null && Z != null){
@@ -192,14 +191,15 @@ public class SCLItem {
 			}
 			else {
 				Location location = new Location(world,X,Y,Z);
-				Material type = location.getBlock().getType();
-				if(plugin.lockable.containsKey(type)){
+				//Material type = location.getBlock().getType();
+                Block block = location.getBlock();
+				if(plugin.canDoubleLock(block)){
 					SCL.verbose("Added location to protection list: Player(" + owner + ") World(" + world + ") X(" + X + ") Y(" + Y + ") Z(" + Z + ")");
 					this.location = location;
 					plugin.chests.list.put(location,this);
 				}
 				else {
-					throw new ParseException(type.toString()+" not a lockable block at World("+world+") X("+X+") Y("+Y+") Z("+Z+")! "+owner+"'s block was moved, or severe configuration change?",0);
+					throw new ParseException(block.getType().toString()+" not a lockable block at World("+world+") X("+X+") Y("+Y+") Z("+Z+")! "+owner+"'s block was moved, or severe configuration change?",0);
 				}
 				deferredLocation = null;
 				isLocationDeferred = false;

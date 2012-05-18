@@ -17,3 +17,34 @@ useLimits: false
 lockLimits:
     example: 10
     anotherexample: 20
+lockables:
+    lockable:
+        - CHEST
+        - DISPENSER
+        - JUKEBOX
+        - ENCHANTMENT_TABLE
+        - BREWING_STAND
+        - WORKBENCH
+        - FURNACE
+        - BURNING_FURNACE
+        - LEVER
+        - STONE_BUTTON
+        - TRAP_DOOR
+        - FENCE_GATE
+        - STONE_PLATE
+        - WOOD_PLATE
+        - WOODEN_DOOR
+    lockPair:
+        - CHEST
+        - WOODEN_DOOR
+    leftLock:
+        - LEVER
+        - STONE_BUTTON
+        - TRAP_DOOR
+        - FENCE_GATE
+        - WOODEN_DOOR
+    lockVertical:
+        - WOODEN_DOOR
+    canSuck:
+        - CHEST
+        - DISPENSER

@@ -60,7 +60,8 @@ public class SCLBlockListener implements Listener {
 		
 		Block block = event.getBlock();
 		
-		if (plugin.lockable.containsKey(block.getType()) && plugin.lockable.get(block.getType())){
+		//if (plugin.lockable.containsKey(block.getType()) && plugin.lockable.get(block.getType())){
+        if (plugin.canDoubleLock(block)){
 			Player player = event.getPlayer();
 			HashSet<Block> checkForLocks = plugin.chests.getNeighbours(block);
 			boolean hostileBlock = false;

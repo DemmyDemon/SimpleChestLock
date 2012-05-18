@@ -1,7 +1,9 @@
 package com.webkonsept.bukkit.simplechestlock;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.logging.Logger;
 
 import org.bukkit.ChatColor;
@@ -42,8 +44,10 @@ public class SCL extends JavaPlugin {
 
 	protected Server server = null;
 	
-	// Intended to hold the material in question and a boolean of weather or not it's double-lockable (like a double chest)
-	public final HashMap<Material,Boolean> lockable = new HashMap<Material,Boolean>();
+	// Lockable blocks
+	public final HashSet<Material> lockable = new HashSet<Material>();
+    // Locks that automagically find "the other half", like chests and doors
+    public final HashSet<Material> doubleLock = new HashSet<Material>();
 	
 	// Intended to hold the materials of items/blocked that can also be activated by left-click
 	public final HashSet<Material> leftLocked = new HashSet<Material>();
@@ -116,6 +120,7 @@ public class SCL extends JavaPlugin {
 					if ( !isPlayer  || permit(player, "simplechestlock.command.reload")){
                         cfg.load();
                         cfg.report(sender);
+                        setupLockables();
 						String saveFile = "Chests.txt";
 						if (args.length == 2){
 							saveFile = args[1];
@@ -305,56 +310,82 @@ public class SCL extends JavaPlugin {
 		}
 	}
 	private void setupLockables() {
+        // TODO: Move this to Settings.java where it belongs!
 		lockable.clear();
-		// DEFAULT VALUES
-		lockable.put(Material.CHEST,true);
-		lockable.put(Material.DISPENSER,false);
-		lockable.put(Material.JUKEBOX,false);
-		lockable.put(Material.ENCHANTMENT_TABLE,false);
-		lockable.put(Material.BREWING_STAND,false);
-		
-		// Requested to be lockable, even though it can't store stuff
-		lockable.put(Material.WORKBENCH,false);
-		
-		//NOTE:  If double locking is enabled for furnaces, remember that a furnace and a burning furnace are NOT the same material!
-		// That means that double locking, which tests the neighboring blocks for .equals() on the material, won't work if one is burning. 
-		lockable.put(Material.FURNACE,false);
-		lockable.put(Material.BURNING_FURNACE,false);
-		
-		// Levers, buttons and doors are special:  You can activate them with a left click.
-		// Hence, we have to lock interaction via LMB as well, making them "leftLocked"
-		
-		lockable.put(Material.LEVER,false);
-		leftLocked.add(Material.LEVER);
-		lockable.put(Material.STONE_BUTTON,false);
-		leftLocked.add(Material.STONE_BUTTON);
-		lockable.put(Material.TRAP_DOOR, false);
-		leftLocked.add(Material.TRAP_DOOR);
-		
-		// WTH, this doesn't seem to work?!
-		lockable.put(Material.FENCE_GATE, false);
-		leftLocked.add(Material.FENCE_GATE);
-		
-		// And now:  Pressure plates!
-		lockable.put(Material.STONE_PLATE,false);
-		lockable.put(Material.WOOD_PLATE,false);
-		
-		// Doors are lockable, leftLocked AND vertically speaking TWO blocks.
-		// This makes them rather complex to lock...
-		lockable.put(Material.WOODEN_DOOR, true);
-		leftLocked.add(Material.WOODEN_DOOR);
-		lockIncludeVertical.add(Material.WOODEN_DOOR);
-		
-		
-		// Some types will "suck" in items, if enabled
-		canSuck.add(Material.CHEST);
-		canSuck.add(Material.DISPENSER);
-		
+        leftLocked.clear();
+        canSuck.clear();
+
+        reloadConfig();
+
+        List<String> lockables = getConfig().getStringList("lockables.lockable");
+        verbose("lockable:");
+        for (String lockableBlockName : lockables){
+            Material mat = Material.valueOf(lockableBlockName);
+            if (mat != null){
+                lockable.add(mat);
+                verbose("    "+lockableBlockName);
+            }
+            else {
+                SCL.crap("Sorry, material named '"+lockableBlockName+"' does not exist, and can't be locked!");
+            }
+        }
+
+        List<String> doubles = getConfig().getStringList("lockables.lockPair");
+        verbose("lockPair:");
+        for (String lockableBlockName : doubles){
+            Material mat = Material.valueOf(lockableBlockName);
+            if (mat != null && lockable.contains(mat)){
+                doubleLock.add(mat);
+                verbose("    "+lockableBlockName);
+            }
+            else {
+                SCL.crap("Sorry, material named '"+lockableBlockName+"' can't be pair locked.  Is it lockable at all?");
+            }
+        }
+
+        List<String> leftLockable = getConfig().getStringList("lockables.leftLock");
+        verbose("leftLock:");
+        for (String blockName : leftLockable){
+            Material mat = Material.valueOf(blockName);
+            if (mat != null && lockable.contains(mat)){
+                leftLocked.add(mat);
+                verbose("    "+blockName);
+            }
+            else {
+                SCL.crap("Sorry, but '"+blockName+"' can't be left-locked.  Is it lockable at all?");
+            }
+        }
+
+        List<String> verticalLockable = getConfig().getStringList("lockables.lockVertical");
+        verbose("lockVertical:");
+        for (String blockName : verticalLockable){
+            Material mat = Material.valueOf(blockName);
+            if (mat != null && lockable.contains(mat)){
+                lockIncludeVertical.add(mat);
+                verbose("    "+blockName);
+            }
+            else {
+                crap("Sorry, '"+blockName+"' can't be vertically lockable.  Is it lockable at all?");
+            }
+        }
+
+        List<String> omgThisSucks = getConfig().getStringList("lockables.canSuck");
+        verbose("canSuck");
+        for (String sucks : omgThisSucks){
+            Material mat = Material.valueOf(sucks);
+            if (mat != null && lockable.contains(mat)){
+                canSuck.add(mat);
+                verbose("    "+sucks);
+            }
+            else {
+                crap("Sorry, '"+sucks+"' can't be vertically lockable.  Is it lockable at all?");
+            }
+        }
 		
 		// The associated permissions
 		verbose("Preparing permissions:");
 	    Permission allBlocksPermission = new Permission("simplechestlock.locktype.*");
-        for (Material mat : lockable.keySet()){
+        for (Material mat : lockable){
             if (mat.isBlock()){
                 String permissionName = "simplechestlock.locktype."+mat.toString().toLowerCase();
                 verbose("   -> Preparing permission " + permissionName);
@@ -368,13 +399,13 @@ public class SCL extends JavaPlugin {
 	public boolean canLock (Block block){
 		if (block == null) return false;
 		Material material = block.getType();
-		return lockable.containsKey(material);
+		return lockable.contains(material);
 	}
 	public boolean canDoubleLock (Block block){
 		if (block == null) return false;
 		Material material = block.getType();
-		if (lockable.containsKey(material)){
-			return lockable.get(material);
+		if (lockable.contains(material)){
+			return doubleLock.contains(material);
 		}
 		else {
 			return false;
