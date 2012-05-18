@@ -152,21 +152,25 @@ public class SCLList implements Runnable {
 								}
 							}
 							for (Entity entity : entityList){
-								ItemStack original = ((Item)entity).getItemStack();
-								ItemStack itemFound = original.clone();
-								if ( inventory.firstEmpty() != -1 && !sucked.contains(entity.getUniqueId()) ){
-								    if (entity.getTicksLived() >= plugin.cfg.suckInterval()){
-								        inventory.addItem(itemFound);
-								        entity.remove();
-								        if (plugin.cfg.suckEffect()){
-								            item.getLocation().getWorld().playEffect(item.getLocation(), Effect.CLICK2,0);
-								        }
-								    }
-									sucked.add(entity.getUniqueId()); // So it doesn't get considered again until next time, even if it wasn't actually sucked.
-								}
-								else {
-									break;
-								}
+                                if (entity instanceof Item){
+                                    Item pickup = (Item) entity;
+                                    pickup.setPickupDelay(plugin.cfg.suckInterval());
+                                    ItemStack original = pickup.getItemStack();
+                                    ItemStack itemFound = original.clone();
+                                    if ( inventory.firstEmpty() != -1 && !sucked.contains(entity.getUniqueId()) ){
+                                        if (entity.getTicksLived() >= plugin.cfg.suckInterval()){
+                                            inventory.addItem(itemFound);
+                                            entity.remove();
+                                            if (plugin.cfg.suckEffect()){
+                                                item.getLocation().getWorld().playEffect(item.getLocation(), Effect.CLICK2,0);
+                                            }
+                                        }
+                                        sucked.add(entity.getUniqueId()); // So it doesn't get considered again until next time, even if it wasn't actually sucked.
+                                    }
+                                    else {
+                                        break;
+                                    }
+                                }
 							}
 						}
 					}
