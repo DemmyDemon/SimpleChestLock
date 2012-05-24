@@ -213,7 +213,15 @@ public class SCLPlayerListener implements Listener {
 													player.sendMessage(ChatColor.GREEN+itemsLocked.toString()+" "+typeName+SCL.plural(itemsLocked)+"s locked!  Combo is "+comboString);
 												}
                                                 if (plugin.cfg.consumeKey() && !SCL.permit(player,"simplechestlock.forfree")){
-                                                    player.getInventory().remove(plugin.cfg.comboKey());
+                                                    if (inHand.getAmount() > 1){
+                                                        inHand.setAmount(inHand.getAmount()-1);
+                                                    }
+                                                    else if (inHand.getAmount() == 1){
+                                                        player.setItemInHand(new ItemStack(Material.AIR));
+                                                    }
+                                                    else {
+                                                        SCL.crap(player.getName()+" is locking stuff without being charged for it!");
+                                                    }
                                                 }
 											}
 											else if (itemsLocked < 0){
@@ -246,7 +254,15 @@ public class SCLPlayerListener implements Listener {
                                             }
 										}
                                         if (plugin.cfg.consumeKey() && !SCL.permit(player,"simplechestlock.forfree")){
-                                            player.getInventory().remove(plugin.cfg.key());
+                                            if (inHand.getAmount() > 1){
+                                                inHand.setAmount(inHand.getAmount()-1);
+                                            }
+                                            else if (inHand.getAmount() == 1){
+                                                player.setItemInHand(new ItemStack(Material.AIR));
+                                            }
+                                            else {
+                                                SCL.crap(player.getName()+" is locking stuff without being charged for it!");
+                                            }
                                         }
 									}
 									else if (itemsLocked < 0){
