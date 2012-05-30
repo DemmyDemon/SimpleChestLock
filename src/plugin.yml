@@ -1,6 +1,6 @@
 name: SimpleChestLock
 main: com.webkonsept.bukkit.simplechestlock.SCL
-version: 1.0.0
+version: 1.0.1
 branch: stable
 thread: http://forums.bukkit.org/threads/SimpleChestLock.17557/
 website: http://minecraft.webkonsept.com/plugins/details/SimpleChestLock.html
@@ -10,7 +10,6 @@ commands:
     scl:
         description:  Interact with SimpleChestLock
         usage: /<command> [save|reload|status|as|trust|getkey|getcombokey]
-generators: [bukget]
 categories: [ SEC, MECH ]
 description: Gives players the ability to lock chests and other blocks.
 maintainer: DemmyDemon

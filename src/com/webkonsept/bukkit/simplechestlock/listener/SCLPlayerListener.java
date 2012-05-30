@@ -70,9 +70,17 @@ public class SCLPlayerListener implements Listener {
 					if ( comboLocked && ! owner.equalsIgnoreCase(player.getName()) && ! ignoreOwner){
 						Inventory inv = player.getInventory();
 						if (
-								inv.getItem(0).getType().equals(Material.WOOL)
-								&& inv.getItem(1).getType().equals(Material.WOOL)
-								&& inv.getItem(2).getType().equals(Material.WOOL)
+                                (
+                                    inv.getItem(0) != null
+                                    && inv.getItem(1) != null
+                                    && inv.getItem(2) != null
+                                )
+                                && // For readability, I didn't bunch up all the &&s.
+                                (
+								    inv.getItem(0).getType().equals(Material.WOOL)
+								    && inv.getItem(1).getType().equals(Material.WOOL)
+								    && inv.getItem(2).getType().equals(Material.WOOL)
+                                )
 						){
 							DyeColor tumbler1 = DyeColor.getByData(inv.getItem(0).getData().getData());
 							DyeColor tumbler2 = DyeColor.getByData(inv.getItem(1).getData().getData());
@@ -195,9 +203,17 @@ public class SCLPlayerListener implements Listener {
 									if (SCL.permit(player, "simplechestlock.usecombo")){
 										Inventory inv = player.getInventory();
 										if (
-												inv.getItem(0).getType().equals(Material.WOOL)
-												&& inv.getItem(1).getType().equals(Material.WOOL)
-												&& inv.getItem(2).getType().equals(Material.WOOL)
+                                                (
+                                                    inv.getItem(0) != null
+                                                    && inv.getItem(1) != null
+                                                    && inv.getItem(2) != null
+                                                )
+                                                && // For readability, I didn't bunch up all the &&s.
+                                                (
+                                                    inv.getItem(0).getType().equals(Material.WOOL)
+                                                    && inv.getItem(1).getType().equals(Material.WOOL)
+                                                    && inv.getItem(2).getType().equals(Material.WOOL)
+                                                )
 										){
 											DyeColor tumbler1 = DyeColor.getByData(inv.getItem(0).getData().getData());
 											DyeColor tumbler2 = DyeColor.getByData(inv.getItem(1).getData().getData());
@@ -210,7 +226,7 @@ public class SCLPlayerListener implements Listener {
 													player.sendMessage(ChatColor.GREEN+itemsLocked.toString()+" "+typeName+SCL.plural(itemsLocked)+" locked for "+locksFor+"!  Combo is "+comboString);
 												}
 												else {
-													player.sendMessage(ChatColor.GREEN+itemsLocked.toString()+" "+typeName+SCL.plural(itemsLocked)+"s locked!  Combo is "+comboString);
+													player.sendMessage(ChatColor.GREEN+itemsLocked.toString()+" "+typeName+SCL.plural(itemsLocked)+" locked!  Combo is "+comboString);
 												}
                                                 if (plugin.cfg.consumeKey() && !SCL.permit(player,"simplechestlock.forfree")){
                                                     if (inHand.getAmount() > 1){
