@@ -320,7 +320,19 @@ public class SCL extends JavaPlugin {
         List<String> lockables = getConfig().getStringList("lockables.lockable");
         verbose("lockable:");
         for (String lockableBlockName : lockables){
-            Material mat = Material.valueOf(lockableBlockName);
+            Material mat = null;
+            try {
+                mat = Material.valueOf(lockableBlockName);
+            }
+            catch (IllegalArgumentException e) {
+                try {
+                    int i = Integer.parseInt(lockableBlockName.trim());
+                    mat = Material.getMaterial(i);
+                }
+                catch (NumberFormatException nfe) {
+                }
+            }
+
             if (mat != null){
                 lockable.add(mat);
                 verbose("    "+lockableBlockName);
