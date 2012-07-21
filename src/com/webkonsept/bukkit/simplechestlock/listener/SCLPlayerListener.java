@@ -32,7 +32,8 @@ public class SCLPlayerListener implements Listener {
 		if (! plugin.isEnabled() ) return;
 		if ( event.isCancelled() ) return;
 		Block block = event.getClickedBlock();
-		
+
+        if (!plugin.canLock(block)) return;
 		
 		ItemStack toolUsed = null;
 		

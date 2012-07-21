@@ -34,6 +34,8 @@ public class Settings {
     private boolean useWorldGuard = false;
     private WorldGuardPlugin worldGuard = null;
 
+    private boolean preventExposions = true;
+
     public Settings (SCL instance){
         plugin = instance;
         load();
@@ -54,6 +56,7 @@ public class Settings {
     public boolean suckEffect(){return suckEffect;}
     public boolean useWorldGuard(){return useWorldGuard;}
     public WorldGuardPlugin worldGuard(){return worldGuard;}
+    public boolean preventExplosions(){return preventExposions;}
 
     public void report(CommandSender target){
         target.sendMessage(ChatColor.GOLD+"SimpleChestLock settings");
@@ -63,6 +66,7 @@ public class Settings {
                 "Access message: " + boolColor(openMessage),
                 "Limit number of locked blocks: " + boolColor(useLimits),
                 "WorldGuard support enabled: " + boolColor(useWorldGuard),
+                "Prevent explosions near locks:" + boolColor(preventExposions),
                 "",
                 "Key item: " + key.getType().toString() + ":" + key.getDurability(),
                 "Combo key item; " + comboKey.getType().toString() + ":" + comboKey.getDurability(),
@@ -107,6 +111,7 @@ public class Settings {
                 put("consumeKey",false);
 
                 put("useWorldGuard",false);
+                put("preventExplosions",true);
 
                 put("lockpair",true);
                 put("usePermissionsWhitelist",false);
@@ -149,6 +154,8 @@ public class Settings {
                 SCL.verbose("WorldGuard support enabled.");
             }
         }
+
+        preventExposions = config.getBoolean("preventExplosions",true);
 
         lockedChestsSuck = config.getBoolean("lockedChestsSuck",false);
         suckRange = config.getInt("suckRange",3);

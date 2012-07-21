@@ -26,6 +26,8 @@ public class SCLBlockListener implements Listener {
 		if ( event.isCancelled() ) return;
 		
 		Block block = event.getBlock();
+        if (!plugin.lockable.contains(block.getType())) return; // Thanks SonarBerserk
+
 		if (plugin.chests.isLocked(block)){
 			Player player = event.getPlayer();
 			String owner = plugin.chests.getOwner(block);
@@ -59,6 +61,7 @@ public class SCLBlockListener implements Listener {
 		if (event.isCancelled()) return;
 		
 		Block block = event.getBlock();
+        if (!plugin.canLock(block)) return; // Thanks SonarBerserk
 		
 		//if (plugin.lockable.containsKey(block.getType()) && plugin.lockable.get(block.getType())){
         if (plugin.canDoubleLock(block)){
