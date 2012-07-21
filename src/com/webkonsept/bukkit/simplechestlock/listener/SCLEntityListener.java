@@ -25,7 +25,7 @@ public class SCLEntityListener implements Listener {
 		for (Block block : event.blockList()){
 			if (plugin.chests.isLocked(block)){
                 if (plugin.cfg.preventExplosions()){
-				    event.setCancelled(true);
+                    event.setCancelled(true);
                     SCL.verbose(plugin.chests.getOwner(block)+"'s "+block.getType().toString()+ " was saved from explosion.  Boom: "+String.valueOf(event.getEntity()).replace("^Craft","")); // Thanks SonarBerserk
                     break;
                 }
