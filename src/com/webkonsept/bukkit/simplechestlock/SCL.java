@@ -396,7 +396,13 @@ public class SCL extends JavaPlugin {
 		
 		// The associated permissions
 		verbose("Preparing permissions:");
+
 	    Permission allBlocksPermission = new Permission("simplechestlock.locktype.*");
+        Permission oldAllBlocksPermission = getServer().getPluginManager().getPermission("simplechestlock.locktype.*");
+        if (oldAllBlocksPermission != null){
+            verbose("Old all blocks permission removed.");
+            getServer().getPluginManager().removePermission(oldAllBlocksPermission);
+        }
         for (Material mat : lockable){
             if (mat.isBlock()){
                 String permissionName = "simplechestlock.locktype."+mat.toString().toLowerCase();
