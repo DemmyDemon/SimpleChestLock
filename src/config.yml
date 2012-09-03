@@ -6,6 +6,7 @@ suckRange: 3
 suckInterval: 100
 suckEffect: true
 verbose: false
+preventExplosions: true
 key: 280
 keyDurability: 0
 comboKey: 352
