@@ -5,7 +5,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
@@ -25,6 +24,7 @@ public class Settings {
     private boolean usePermissionsWhitelist = false;
     private boolean whitelistMessage = true;
     private boolean lockedChestsSuck = false;
+    private boolean protectiveAura = false;
     private int suckRange = 3;
 
     private boolean useLimits = false;
@@ -57,6 +57,7 @@ public class Settings {
     public boolean useWorldGuard(){return useWorldGuard;}
     public WorldGuardPlugin worldGuard(){return worldGuard;}
     public boolean preventExplosions(){return preventExposions;}
+    public boolean protectiveAura(){return protectiveAura;}
 
     public void report(CommandSender target){
         target.sendMessage(ChatColor.GOLD+"SimpleChestLock settings");
@@ -66,7 +67,8 @@ public class Settings {
                 "Access message: " + boolColor(openMessage),
                 "Limit number of locked blocks: " + boolColor(useLimits),
                 "WorldGuard support enabled: " + boolColor(useWorldGuard),
-                "Prevent explosions near locks:" + boolColor(preventExposions),
+                "Prevent explosions near locks: " + boolColor(preventExposions),
+                "Some blocks have protective auras: " + boolColor(protectiveAura),
                 "",
                 "Key item: " + key.getType().toString() + ":" + key.getDurability(),
                 "Combo key item; " + comboKey.getType().toString() + ":" + comboKey.getDurability(),
@@ -112,6 +114,7 @@ public class Settings {
 
                 put("useWorldGuard",false);
                 put("preventExplosions",true);
+                put("useProtectiveAuras",false);
 
                 put("lockpair",true);
                 put("usePermissionsWhitelist",false);
@@ -156,6 +159,7 @@ public class Settings {
         }
 
         preventExposions = config.getBoolean("preventExplosions",true);
+        protectiveAura = config.getBoolean("useProtectiveAuras",false);
 
         lockedChestsSuck = config.getBoolean("lockedChestsSuck",false);
         suckRange = config.getInt("suckRange",3);

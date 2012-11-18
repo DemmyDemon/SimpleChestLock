@@ -47,12 +47,7 @@ public class SCLPlayerListener implements Listener {
 		if (plugin.canLock(block)){
 			String typeName = block.getType().toString().replaceAll("_", " ").toLowerCase();
 			if(
-					event.getAction().equals(Action.RIGHT_CLICK_BLOCK) 
-					|| ( 
-						event.getAction().equals(Action.LEFT_CLICK_BLOCK)
-						&& plugin.leftLocked.contains(block.getType())
-						&& !(plugin.toolMatch(toolUsed,plugin.cfg.key()) || plugin.toolMatch(toolUsed,plugin.cfg.comboKey()))
-					)
+					event.getAction().equals(Action.RIGHT_CLICK_BLOCK)
 					|| event.getAction().equals(Action.PHYSICAL)
 			){
 				if (plugin.chests.isLocked(block)){

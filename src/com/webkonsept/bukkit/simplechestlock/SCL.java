@@ -1,11 +1,13 @@
 package com.webkonsept.bukkit.simplechestlock;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.logging.Logger;
-
+import com.webkonsept.bukkit.simplechestlock.listener.SCLBlockListener;
+import com.webkonsept.bukkit.simplechestlock.listener.SCLEntityListener;
+import com.webkonsept.bukkit.simplechestlock.listener.SCLPlayerListener;
+import com.webkonsept.bukkit.simplechestlock.listener.SCLWorldListener;
+import com.webkonsept.bukkit.simplechestlock.locks.LimitHandler;
+import com.webkonsept.bukkit.simplechestlock.locks.SCLItem;
+import com.webkonsept.bukkit.simplechestlock.locks.SCLList;
+import com.webkonsept.bukkit.simplechestlock.locks.TrustHandler;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Server;
@@ -19,14 +21,10 @@ import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.webkonsept.bukkit.simplechestlock.listener.SCLBlockListener;
-import com.webkonsept.bukkit.simplechestlock.listener.SCLEntityListener;
-import com.webkonsept.bukkit.simplechestlock.listener.SCLPlayerListener;
-import com.webkonsept.bukkit.simplechestlock.listener.SCLWorldListener;
-import com.webkonsept.bukkit.simplechestlock.locks.LimitHandler;
-import com.webkonsept.bukkit.simplechestlock.locks.SCLItem;
-import com.webkonsept.bukkit.simplechestlock.locks.SCLList;
-import com.webkonsept.bukkit.simplechestlock.locks.TrustHandler;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.logging.Logger;
 
 public class SCL extends JavaPlugin {
 	private static final Logger log = Logger.getLogger("Minecraft");
@@ -48,24 +46,21 @@ public class SCL extends JavaPlugin {
 	public final HashSet<Material> lockable = new HashSet<Material>();
     // Locks that automagically find "the other half", like chests and doors
     public final HashSet<Material> doubleLock = new HashSet<Material>();
-	
-	// Intended to hold the materials of items/blocked that can also be activated by left-click
-	public final HashSet<Material> leftLocked = new HashSet<Material>();
-	
+    // Blocks that can't be built next to if protective auras are active
+    public final HashSet<Material> hasAura = new HashSet<Material>();
 	// Holding the valid locations for a multi-lockable block
 	public final HashSet<Material> lockIncludeVertical = new HashSet<Material>();
-	
 	// Okay for the "sucks items" feature (Item containers only plx!)
 	public final HashSet<Material> canSuck = new HashSet<Material>();
 	
 	// The "Lock as" feature!
 	public final HashMap<String,String> locksAs = new HashMap<String,String>();
 	
-	private final SCLPlayerListener 	playerListener 	= new SCLPlayerListener(this);
+	private final SCLPlayerListener playerListener 	= new SCLPlayerListener(this);
 	private final SCLBlockListener 	blockListener 	= new SCLBlockListener(this);
-	private final SCLEntityListener 	entityListener 	= new SCLEntityListener(this);
+	private final SCLEntityListener entityListener 	= new SCLEntityListener(this);
 	private final SCLWorldListener	worldListener	= new SCLWorldListener(this);
-	public final SCLList			chests			= new SCLList(this);
+	public  final SCLList			chests			= new SCLList(this);
 	
 	@Override
 	public void onDisable() {
@@ -312,7 +307,6 @@ public class SCL extends JavaPlugin {
 	private void setupLockables() {
         // TODO: Move this to Settings.java where it belongs!
 		lockable.clear();
-        leftLocked.clear();
         canSuck.clear();
 
         reloadConfig();
@@ -330,6 +324,7 @@ public class SCL extends JavaPlugin {
                     mat = Material.getMaterial(i);
                 }
                 catch (NumberFormatException nfe) {
+                    // Empty catch block, will null-check later
                 }
             }
 
@@ -355,16 +350,16 @@ public class SCL extends JavaPlugin {
             }
         }
 
-        List<String> leftLockable = getConfig().getStringList("lockables.leftLock");
-        verbose("leftLock:");
-        for (String blockName : leftLockable){
+        List<String> canHaveAura = getConfig().getStringList("lockables.protectiveAura");
+        verbose("protectiveAura:");
+        for (String blockName : canHaveAura){
             Material mat = Material.valueOf(blockName);
             if (mat != null && lockable.contains(mat)){
-                leftLocked.add(mat);
+                hasAura.add(mat);
                 verbose("    "+blockName);
             }
             else {
-                SCL.crap("Sorry, but '"+blockName+"' can't be left-locked.  Is it lockable at all?");
+                crap("Sorry, '"+blockName+"' can't have a protective aura. Is it lockable at all?");
             }
         }
 
@@ -422,13 +417,13 @@ public class SCL extends JavaPlugin {
 	public boolean canDoubleLock (Block block){
 		if (block == null) return false;
 		Material material = block.getType();
-		if (lockable.contains(material)){
-			return doubleLock.contains(material);
-		}
-		else {
-			return false;
-		}
+        return lockable.contains(material) && doubleLock.contains(material);
 	}
+    public boolean hasAura (Block block){
+        if (block == null) return false;
+        Material material = block.getType();
+        return lockable.contains(material) && hasAura.contains(material);
+    }
 
 	public boolean toolMatch (ItemStack candidate1,ItemStack candidate2){
 	    if (candidate1 == null || candidate2 == null){

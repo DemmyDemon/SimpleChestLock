@@ -7,6 +7,7 @@ suckInterval: 100
 suckEffect: true
 verbose: false
 preventExplosions: true
+useProtectiveAuras: false
 key: 280
 keyDurability: 0
 comboKey: 352
@@ -35,14 +36,12 @@ lockables:
         - STONE_PLATE
         - WOOD_PLATE
         - WOODEN_DOOR
+        - BEACON
+    protectiveAura:
+        - CHEST
+        - DISPENSER
     lockPair:
         - CHEST
-        - WOODEN_DOOR
-    leftLock:
-        - LEVER
-        - STONE_BUTTON
-        - TRAP_DOOR
-        - FENCE_GATE
         - WOODEN_DOOR
     lockVertical:
         - WOODEN_DOOR

@@ -1,20 +1,28 @@
 package com.webkonsept.bukkit.simplechestlock.listener;
 
-import java.util.HashSet;
-
+import com.webkonsept.bukkit.simplechestlock.SCL;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 
-import com.webkonsept.bukkit.simplechestlock.SCL;
+import java.util.HashSet;
 
 public class SCLBlockListener implements Listener {
 	final SCL plugin;
+
+    private final HashSet<BlockFace> aura = new HashSet<BlockFace>(){{
+        add(BlockFace.NORTH);
+        add(BlockFace.SOUTH);
+        add(BlockFace.WEST);
+        add(BlockFace.EAST);
+        add(BlockFace.UP);
+        add(BlockFace.DOWN);
+    }};
 	
 	public SCLBlockListener(SCL instance) {
 		plugin = instance;
@@ -55,16 +63,30 @@ public class SCLBlockListener implements Listener {
 			}
 		}
 	}
-	
+
 	@EventHandler
 	public void onBlockPlace(final BlockPlaceEvent event){
 		if (!plugin.isEnabled()) return;
 		if (event.isCancelled()) return;
 		
 		Block block = event.getBlock();
-        if (!plugin.canLock(block)) return; // Thanks SonarBerserk
-		
-		//if (plugin.lockable.containsKey(block.getType()) && plugin.lockable.get(block.getType())){
+        if (!plugin.canLock(block) && !plugin.cfg.protectiveAura()) return; // Thanks SonarBerserk
+
+        if (plugin.cfg.protectiveAura()){
+            Player player = event.getPlayer();
+            for (BlockFace face : aura){
+                Block inAura = block.getRelative(face);
+                if (plugin.chests.isLocked(inAura) && plugin.hasAura(inAura) && plugin.chests.getOwner(inAura) != player.getName()){
+                    player.sendMessage(ChatColor.GOLD+"You can't place that here:  Too close to a locked block."+ChatColor.RESET);
+                    event.setCancelled(true);
+                    return;
+                }
+            }
+        }
+
+        // Now that we've established there are no locked blocks in the aura, it's no sense continuing if the block in question isn't even lockable.
+        if (!plugin.canLock(block)) return;
+
         if (plugin.canDoubleLock(block)){
 			Player player = event.getPlayer();
 			HashSet<Block> checkForLocks = plugin.chests.getNeighbours(block);
