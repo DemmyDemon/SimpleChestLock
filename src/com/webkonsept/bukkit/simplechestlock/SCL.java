@@ -306,8 +306,10 @@ public class SCL extends JavaPlugin {
 	}
 	private void setupLockables() {
         // TODO: Move this to Settings.java where it belongs!
-		lockable.clear();
+
+        lockable.clear();
         canSuck.clear();
+        hasAura.clear();
 
         reloadConfig();
 
