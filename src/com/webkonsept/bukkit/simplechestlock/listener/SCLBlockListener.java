@@ -76,7 +76,7 @@ public class SCLBlockListener implements Listener {
             Player player = event.getPlayer();
             for (BlockFace face : aura){
                 Block inAura = block.getRelative(face);
-                if (plugin.chests.isLocked(inAura) && plugin.hasAura(inAura) && plugin.chests.getOwner(inAura) != player.getName()){
+                if (plugin.chests.isLocked(inAura) && plugin.hasAura(inAura) && !plugin.chests.getOwner(inAura).equals(player.getName())){
                     player.sendMessage(ChatColor.GOLD+"You can't place that here:  Too close to a locked block."+ChatColor.RESET);
                     event.setCancelled(true);
                     return;

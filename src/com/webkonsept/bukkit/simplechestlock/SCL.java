@@ -36,7 +36,7 @@ public class SCL extends JavaPlugin {
 
     public Settings cfg = null;
 
-	public final Messaging messaging = new Messaging(3000);
+	public final Messaging messaging = new Messaging(1000);
     public TrustHandler trustHandler;
     public LimitHandler limitHandler;
 
@@ -133,8 +133,8 @@ public class SCL extends JavaPlugin {
 					}
 				}
 				else if (args[0].equalsIgnoreCase("as")){
-					success = true;
-					if (args.length == 2){
+                    success = true;
+                    if (args.length == 2){
 						if (!isPlayer){
 							sender.sendMessage("Sorry mr. Console, you can't lock as anyone.  How will you swing the stick?");
 						}
@@ -147,10 +147,15 @@ public class SCL extends JavaPlugin {
 						}
 					}
 					else if (args.length == 1){
-						if (locksAs.containsKey(player.getName())){
-							locksAs.remove(player.getName());
-						}
-						sender.sendMessage(ChatColor.GREEN+"[SimpleChestLock] Locking chests for yourself");
+                        if (isPlayer){
+						    if (locksAs.containsKey(player.getName())){
+							    locksAs.remove(player.getName());
+						    }
+						    sender.sendMessage(ChatColor.GREEN+"[SimpleChestLock] Locking chests for yourself");
+                        }
+                        else {
+                            sender.sendMessage(ChatColor.RED+"Sorry, this command only works in-game.");
+                        }
 					}
 					else if (args.length > 2){
 						sender.sendMessage(ChatColor.YELLOW+"[SimpleChestLock] Argument amount mismatch.  /scl as <name>");

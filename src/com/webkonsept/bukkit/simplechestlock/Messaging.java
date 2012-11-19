@@ -1,15 +1,13 @@
 package com.webkonsept.bukkit.simplechestlock;
 
-import java.util.Calendar;
-import java.util.HashMap;
-
 import org.bukkit.entity.Player;
+
+import java.util.HashMap;
 
 public class Messaging {
     int mtd = 3000;
-    final Calendar cal = Calendar.getInstance();
     
-    final HashMap<String,Long> playerTime = new HashMap<String,Long>();
+    private final HashMap<String,Long> playerTime = new HashMap<String,Long>();
     
     public Messaging (Integer minimumTimeDifference) {
         mtd = minimumTimeDifference;
@@ -18,22 +16,17 @@ public class Messaging {
     public void throttledMessage(Player player,String message){
         String playerName = player.getName();
         if (playerTime.containsKey(playerName)){
-            if (playerTime.get(playerName) + mtd < now() ){
+            if ( (playerTime.get(playerName) + mtd) < System.currentTimeMillis() ){
                 player.sendMessage(message);
-                playerTime.put(playerName,now());
+                playerTime.put(playerName,System.currentTimeMillis());
             }
             else {
-                SCL.verbose("Throttling suppressed message '" + message + "' for " + playerName);
+                SCL.verbose("Suppressed message '" + message + "' for " + playerName);
             }
         }
         else {
             player.sendMessage(message);
-            playerTime.put(playerName,now());
+            playerTime.put(playerName,System.currentTimeMillis());
         }
     }
-    
-    public Long now() {
-        return cal.getTimeInMillis();
-    }
-
 }
