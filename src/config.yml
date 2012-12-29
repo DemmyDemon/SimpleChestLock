@@ -1,3 +1,5 @@
+verbose: false
+checkUpdates: true
 usePermissionsWhitelist: false
 whitelistMessage: true
 lockpair: true
@@ -5,7 +7,6 @@ lockedChestsSuck: false
 suckRange: 3
 suckInterval: 100
 suckEffect: true
-verbose: false
 preventExplosions: true
 useProtectiveAuras: false
 key: 280

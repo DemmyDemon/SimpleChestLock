@@ -1,15 +1,14 @@
 package com.webkonsept.bukkit.simplechestlock.listener;
 
-import com.webkonsept.bukkit.simplechestlock.locks.SCLItem;
-import org.bukkit.ChatColor;
+import com.webkonsept.bukkit.simplechestlock.SCL;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityExplodeEvent;
-
-import com.webkonsept.bukkit.simplechestlock.SCL;
+import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 
 public class SCLEntityListener implements Listener {
 	final SCL plugin;
@@ -17,14 +16,26 @@ public class SCLEntityListener implements Listener {
 	public SCLEntityListener(SCL instance) {
 		plugin = instance;
 	}
-	
+
+    @EventHandler
+    public void onPaintingDamaged (final HangingBreakByEntityEvent event){
+        Entity remover = event.getRemover();
+        Entity removed = event.getEntity();
+        if (remover instanceof Player){
+            Player player = (Player) remover;
+            if (player.isOp()){
+                player.sendMessage("You removed a "+removed.getType().toString()+" with ID "+removed.getUniqueId());
+            }
+        }
+    }
+
 	@EventHandler
-	public void onEntityExplode (EntityExplodeEvent event){
+	public void onEntityExplode (final EntityExplodeEvent event){
 	    if (!plugin.isEnabled()) return;
 	    if (event.isCancelled()) return;
-		for (Block block : event.blockList()){
-			if (plugin.chests.isLocked(block)){
-                if (plugin.cfg.preventExplosions()){
+        if (plugin.cfg.preventExplosions()){ // If not, what's the point in checking at all?
+		    for (Block block : event.blockList()){
+			    if (plugin.chests.isLocked(block)){
                     event.setCancelled(true);
                     SCL.verbose(plugin.chests.getOwner(block)+"'s "+block.getType().toString()+ " was saved from explosion.  Boom: "+String.valueOf(event.getEntity()).replace("^Craft","")); // Thanks SonarBerserk
                     break;
@@ -32,8 +43,9 @@ public class SCLEntityListener implements Listener {
 			}
 		}
 	}
+
     @EventHandler(priority = EventPriority.MONITOR)
-    public void monitorEntityExplode (EntityExplodeEvent event){
+    public void monitorEntityExplode (final EntityExplodeEvent event){
         if (!plugin.isEnabled()) return;
         if (event.isCancelled()) return;
         for (Block block : event.blockList()){

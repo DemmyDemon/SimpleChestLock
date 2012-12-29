@@ -18,6 +18,7 @@ public class Settings {
     private boolean lockpair = true;
     private ItemStack key;
     private ItemStack comboKey;
+    private boolean checkUpdates = true;
     private boolean useKeyData = false;
     private boolean consumeKey = false;
     private boolean openMessage = true;
@@ -58,11 +59,14 @@ public class Settings {
     public WorldGuardPlugin worldGuard(){return worldGuard;}
     public boolean preventExplosions(){return preventExposions;}
     public boolean protectiveAura(){return protectiveAura;}
+    public boolean checkUpdates(){return checkUpdates;}
 
     public void report(CommandSender target){
         target.sendMessage(ChatColor.GOLD+"SimpleChestLock settings");
         indentedMessages(target,
                 "Verbose mode: " + boolColor(SCL.verbose),
+                "Check for updates: "+boolColor(checkUpdates),
+                "",
                 "Lock pairs: " + boolColor(lockpair),
                 "Access message: " + boolColor(openMessage),
                 "Limit number of locked blocks: " + boolColor(useLimits),
@@ -104,6 +108,8 @@ public class Settings {
         config.addDefaults(new HashMap<String,Object>(){
             {
                 put("verbose",false);
+                put("checkUpdates",true);
+
                 put("useLimits",false);
                 put("key",280);
                 put("keyDurability",0);
@@ -130,6 +136,8 @@ public class Settings {
         });
 
         SCL.verbose = config.getBoolean("verbose", false);
+        checkUpdates = config.getBoolean("checkUpdates",true);
+
         lockpair = config.getBoolean("lockpair", true);
         usePermissionsWhitelist = config.getBoolean("usePermissionsWhitelist",false);
         whitelistMessage = config.getBoolean("whitelistMessage",true);

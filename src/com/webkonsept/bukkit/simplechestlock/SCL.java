@@ -1,5 +1,6 @@
 package com.webkonsept.bukkit.simplechestlock;
 
+import com.webkonsept.bukkit.konseptupdate.KonseptUpdate;
 import com.webkonsept.bukkit.simplechestlock.listener.SCLBlockListener;
 import com.webkonsept.bukkit.simplechestlock.listener.SCLEntityListener;
 import com.webkonsept.bukkit.simplechestlock.listener.SCLPlayerListener;
@@ -52,6 +53,8 @@ public class SCL extends JavaPlugin {
 	public final HashSet<Material> lockIncludeVertical = new HashSet<Material>();
 	// Okay for the "sucks items" feature (Item containers only plx!)
 	public final HashSet<Material> canSuck = new HashSet<Material>();
+    // Lockable entities, like the Item Frame
+    //TODO// public final HashSet<EntityType> lockableEntities = new HashSet<EntityType>();
 	
 	// The "Lock as" feature!
 	public final HashMap<String,String> locksAs = new HashMap<String,String>();
@@ -72,8 +75,13 @@ public class SCL extends JavaPlugin {
 	@Override
 	public void onEnable() {
         pluginVersion = getDescription().getVersion();
+
         cfg = new Settings(this);
 		setupLockables();
+
+        if (cfg.checkUpdates()){
+            out(KonseptUpdate.check(pluginName,pluginVersion));
+        }
 		
 		trustHandler = new TrustHandler(this);
 		limitHandler = new LimitHandler(this);

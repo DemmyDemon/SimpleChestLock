@@ -1,20 +1,21 @@
 package com.webkonsept.bukkit.simplechestlock.listener;
 
+import com.webkonsept.bukkit.simplechestlock.SCL;
+import com.webkonsept.bukkit.simplechestlock.locks.SCLItem;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-
-import com.webkonsept.bukkit.simplechestlock.SCL;
-import com.webkonsept.bukkit.simplechestlock.locks.SCLItem;
 
 public class SCLPlayerListener implements Listener {
 	final SCL plugin;
@@ -25,7 +26,19 @@ public class SCLPlayerListener implements Listener {
 	private String ucfirst(String string){
 		return string.substring(0,1).toUpperCase() + string.substring(1);
 	}
-	
+
+    @EventHandler
+    public void onPlayerFrobEntity (final PlayerInteractEntityEvent event){
+        if (! plugin.isEnabled() ) return;
+        if ( event.isCancelled() ) return;
+
+        Player player = event.getPlayer();
+        Entity entity = event.getRightClicked();
+        if (player.isOp()){
+            player.sendMessage("You right-clicked a "+entity.getType().toString()+" with ID "+entity.getUniqueId());
+        }
+    }
+
 	// TODO: Break up this monster method, plx!
 	@EventHandler
 	public void onPlayerInteract (final PlayerInteractEvent event){
@@ -35,7 +48,7 @@ public class SCLPlayerListener implements Listener {
 
         if (!plugin.canLock(block)) return;
 		
-		ItemStack toolUsed = null;
+		ItemStack toolUsed;
 		
 		if (event.getItem() != null){
 			toolUsed = event.getItem().clone();

@@ -3,6 +3,7 @@
 <project name="SimpleChestLock" default="testing">
     <path id="class.path">
         <fileset dir="../libs/" includes="*.jar" />
+        <fileset dir="../KonseptUpdate" includes="*.class"/>
     </path>
     <target name="compile">
         <mkdir dir="./bin"/>
@@ -15,6 +16,10 @@
         />
     </target>
     <target name="jar" depends="compile">
+        <copy
+            file="../KonseptUpdate/bin/com/webkonsept/bukkit/konseptupdate/KonseptUpdate.class"
+            tofile="./bin/com/webkonsept/bukkit/konseptupdate/KonseptUpdate.class"
+        />
         <copy
             file="./src/plugin.yml"
             tofile="./bin/plugin.yml"
