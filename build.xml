@@ -2,32 +2,33 @@
 
 <project name="SimpleChestLock" default="testing">
     <path id="class.path">
+        <fileset dir="../Boilerplate/bin/com/webkonsept/minecraft/boilerplate/" includes="*.class"/>
         <fileset dir="../libs/" includes="*.jar" />
-        <fileset dir="../KonseptUpdate" includes="*.class"/>
     </path>
     <target name="compile">
         <mkdir dir="./bin"/>
+        <copy todir="./bin/com/webkonsept/minecraft/boilerplate/">
+            <fileset dir="../Boilerplate/bin/com/webkonsept/minecraft/boilerplate/" includes="*.class"/>
+        </copy>
+
         <javac
             debug="true"
             debuglevel="lines,vars,source"
             srcdir="./src"
-            classpathref="class.path" 
+            classpathref="class.path"
             destdir="./bin"
         />
     </target>
     <target name="jar" depends="compile">
+        <!--
         <copy
-            file="../KonseptUpdate/bin/com/webkonsept/bukkit/konseptupdate/KonseptUpdate.class"
-            tofile="./bin/com/webkonsept/bukkit/konseptupdate/KonseptUpdate.class"
+            file="../Boilerplate/bin/com/webkonsept/minecraft/boilerplate/KonseptUpdate.class"
+            tofile="./bin/com/webkonsept/minecraft/boilerplate/KonseptUpdate.class"
         />
-        <copy
-            file="./src/plugin.yml"
-            tofile="./bin/plugin.yml"
-        />
-        <copy
-            file="./src/config.yml"
-            tofile="./bin/config.yml"
-        />
+        -->
+        <copy todir="./bin/">
+            <fileset dir="./src/" includes="*.yml"/>
+        </copy>
         <jar destfile="${ant.project.name}.jar"
             basedir="./bin"
             includes="**/*"

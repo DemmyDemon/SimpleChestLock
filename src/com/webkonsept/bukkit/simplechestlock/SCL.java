@@ -1,6 +1,5 @@
 package com.webkonsept.bukkit.simplechestlock;
 
-import com.webkonsept.bukkit.konseptupdate.KonseptUpdate;
 import com.webkonsept.bukkit.simplechestlock.listener.SCLBlockListener;
 import com.webkonsept.bukkit.simplechestlock.listener.SCLEntityListener;
 import com.webkonsept.bukkit.simplechestlock.listener.SCLPlayerListener;
@@ -9,6 +8,7 @@ import com.webkonsept.bukkit.simplechestlock.locks.LimitHandler;
 import com.webkonsept.bukkit.simplechestlock.locks.SCLItem;
 import com.webkonsept.bukkit.simplechestlock.locks.SCLList;
 import com.webkonsept.bukkit.simplechestlock.locks.TrustHandler;
+import com.webkonsept.minecraft.boilerplate.KonseptUpdate;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Server;
@@ -80,7 +80,7 @@ public class SCL extends JavaPlugin {
 		setupLockables();
 
         if (cfg.checkUpdates()){
-            out(KonseptUpdate.check(pluginName,pluginVersion));
+            out(KonseptUpdate.check(pluginName, pluginVersion));
         }
 		
 		trustHandler = new TrustHandler(this);
