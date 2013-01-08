@@ -2,13 +2,12 @@
 
 <project name="SimpleChestLock" default="testing">
     <path id="class.path">
-        <fileset dir="../Boilerplate/bin/com/webkonsept/minecraft/boilerplate/" includes="*.class"/>
         <fileset dir="../libs/" includes="*.jar" />
     </path>
     <target name="compile">
         <mkdir dir="./bin"/>
-        <copy todir="./bin/com/webkonsept/minecraft/boilerplate/">
-            <fileset dir="../Boilerplate/bin/com/webkonsept/minecraft/boilerplate/" includes="*.class"/>
+        <copy todir="./src/com/webkonsept/minecraft/boilerplate/">
+            <fileset dir="../Boilerplate/src/com/webkonsept/minecraft/boilerplate/" includes="*.java"/>
         </copy>
 
         <javac
@@ -20,12 +19,6 @@
         />
     </target>
     <target name="jar" depends="compile">
-        <!--
-        <copy
-            file="../Boilerplate/bin/com/webkonsept/minecraft/boilerplate/KonseptUpdate.class"
-            tofile="./bin/com/webkonsept/minecraft/boilerplate/KonseptUpdate.class"
-        />
-        -->
         <copy todir="./bin/">
             <fileset dir="./src/" includes="*.yml"/>
         </copy>
