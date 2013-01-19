@@ -27,6 +27,7 @@ public class SCLPlayerListener implements Listener {
 		return string.substring(0,1).toUpperCase() + string.substring(1);
 	}
 
+    /*
     @EventHandler
     public void onPlayerFrobEntity (final PlayerInteractEntityEvent event){
         if (! plugin.isEnabled() ) return;
@@ -38,6 +39,7 @@ public class SCLPlayerListener implements Listener {
             player.sendMessage("You right-clicked a "+entity.getType().toString()+" with ID "+entity.getUniqueId());
         }
     }
+    */
 
 	// TODO: Break up this monster method, plx!
 	@EventHandler
