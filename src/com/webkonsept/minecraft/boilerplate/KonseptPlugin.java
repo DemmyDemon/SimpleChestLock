@@ -15,40 +15,48 @@ public class KonseptPlugin extends JavaPlugin {
     private static Logger log;
 
     @Override
-    public void onLoad(){
-        pluginName = getDescription().getFullName();
+    public void onLoad() {
+        pluginName = getDescription().getName();
         pluginVersion = getDescription().getVersion();
         log = getLogger();
     }
-    public boolean allow(Player player,String permission){
+
+    public boolean allow(Player player, String permission) {
         boolean allow = player.hasPermission(permission);
-        verboseYes(player.getName()+"->"+permission,allow);
+        verboseYes(player.getName() + "->" + permission, allow);
         return allow;
     }
-    public static void setVerbose(Boolean setting){
+
+    public static void setVerbose(Boolean setting) {
         verbose = setting;
     }
-    public static void setCheckUpdate(Boolean setting){
+
+    public static void setCheckUpdate(Boolean setting) {
         checkUpdate = setting;
     }
-    public static void log(String message){
-        log.info(String.format("[%s v%s] %s",pluginName,pluginVersion,message));
+
+    public static void log(String message) {
+        log.info(String.format("[%s v%s] %s", pluginName, pluginVersion, message));
     }
-    public static void verbose(String message){
-        if (verbose){
-            log.info(String.format("[%s v%s] [VERBOSE] %s",pluginName,pluginVersion,message));
+
+    public static void verbose(String message) {
+        if (verbose) {
+            log.info(String.format("[%s v%s Verbose] %s", pluginName, pluginVersion, message));
         }
     }
-    public static void verboseYes(String message, boolean isTrue){
+
+    public static void verboseYes(String message, boolean isTrue) {
         if (!verbose) return;
         String enabled = isTrue ? ": yes" : ": no";
-        verbose(message+enabled);
+        verbose(message + enabled);
     }
-    public static void warning(String message){
-        log.warning(String.format("[%s v%s] %s",pluginName,pluginVersion,message));
+
+    public static void warning(String message) {
+        log.warning(String.format("[%s v%s] %s", pluginName, pluginVersion, message));
     }
-    public static void checkUpdate(){
-        if (checkUpdate){
+
+    public static void checkUpdate() {
+        if (checkUpdate) {
             verbose("Checking for update...");
             log(KonseptUpdate.check(pluginName, pluginVersion));
         }
@@ -56,8 +64,9 @@ public class KonseptPlugin extends JavaPlugin {
             verbose("Update checking is disabled.");
         }
     }
-    public FileConfiguration refreshConfig(){
-        if (! new File(getDataFolder(),"config.yml").exists()){
+
+    public FileConfiguration refreshConfig() {
+        if (!new File(getDataFolder(), "config.yml").exists()) {
             saveDefaultConfig();
         }
         else {
@@ -66,10 +75,10 @@ public class KonseptPlugin extends JavaPlugin {
 
         FileConfiguration config = getConfig();
 
-        verbose = config.getBoolean("verbose",false);
+        verbose = config.getBoolean("verbose", false);
         verbose("Verbosity activated.");
 
-        checkUpdate = config.getBoolean("checkUpdate",true);
+        checkUpdate = config.getBoolean("checkUpdate", true);
         checkUpdate();
 
         return config;
