@@ -1,6 +1,6 @@
 name: SimpleChestLock
 main: com.webkonsept.bukkit.simplechestlock.SCL
-version: 1.2.2
+version: 1.3.0beta2
 thread: http://forums.bukkit.org/threads/SimpleChestLock.17557/
 website: http://minecraft.webkonsept.com/plugins/details/SimpleChestLock.html
 location: http://minecraft.webkonsept.com/plugins/download/SimpleChestLock.jar
@@ -13,7 +13,7 @@ categories: [ SEC, MECH ]
 description: Gives players the ability to lock chests and other blocks.
 maintainer: DemmyDemon
 authors: [DemmyDemon]
-softdepend: [MultiVerse,Multiverse-Core,MyWorlds,emericaWorlds,WormholeExtreme,WorldGuard]
+softdepend: [MultiVerse,Multiverse-Core,MyWorlds,emericaWorlds,WormholeExtreme,WorldGuard,Events]
 permissions:
     simplechestlock.*:
         description: Full access

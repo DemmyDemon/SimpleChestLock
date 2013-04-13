@@ -9,6 +9,7 @@ import com.webkonsept.bukkit.simplechestlock.locks.SCLItem;
 import com.webkonsept.bukkit.simplechestlock.locks.SCLList;
 import com.webkonsept.bukkit.simplechestlock.locks.TrustHandler;
 import com.webkonsept.minecraft.boilerplate.KonseptUpdate;
+import me.sonarbeserk.events.EventsAPI;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Server;
@@ -19,6 +20,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -42,7 +44,11 @@ public class SCL extends JavaPlugin {
     public LimitHandler limitHandler;
 
 	protected Server server = null;
-	
+
+    // EventsAPI support
+    public EventsAPI eventsAPI;
+    public boolean enableEventsAPI = false;
+
 	// Lockable blocks
 	public final HashSet<Material> lockable = new HashSet<Material>();
     // Locks that automagically find "the other half", like chests and doors
@@ -55,20 +61,22 @@ public class SCL extends JavaPlugin {
 	public final HashSet<Material> canSuck = new HashSet<Material>();
     // Lockable entities, like the Item Frame
     //TODO// public final HashSet<EntityType> lockableEntities = new HashSet<EntityType>();
-	
+
 	// The "Lock as" feature!
 	public final HashMap<String,String> locksAs = new HashMap<String,String>();
-	
+
 	private final SCLPlayerListener playerListener 	= new SCLPlayerListener(this);
 	private final SCLBlockListener 	blockListener 	= new SCLBlockListener(this);
 	private final SCLEntityListener entityListener 	= new SCLEntityListener(this);
 	private final SCLWorldListener	worldListener	= new SCLWorldListener(this);
 	public  final SCLList			chests			= new SCLList(this);
-	
+
 	@Override
 	public void onDisable() {
 		chests.save("Chests.txt");
 		// out("Disabled!"); // Bukkit already does this
+        enableEventsAPI = false;
+        eventsAPI = null;
 		getServer().getScheduler().cancelTasks(this);
 	}
 
@@ -82,32 +90,38 @@ public class SCL extends JavaPlugin {
         if (cfg.checkUpdates()){
             out(KonseptUpdate.check(pluginName, pluginVersion));
         }
-		
+
 		trustHandler = new TrustHandler(this);
 		limitHandler = new LimitHandler(this);
 
 		server = getServer();
 		chests.load("Chests.txt");
 		PluginManager pm = getServer().getPluginManager();
-		
+
 		pm.registerEvents(playerListener,this);
 		pm.registerEvents(blockListener,this);
 		pm.registerEvents(entityListener,this);
 		pm.registerEvents(worldListener,this);
-		
+
 		if (cfg.lockedChestsSuck()){
 			server.getScheduler().scheduleSyncRepeatingTask(this,chests, cfg.suckInterval(), cfg.suckInterval());
 		}
+
+        Plugin eventsPlugin = pm.getPlugin("Events");
+        if (eventsPlugin != null && eventsPlugin.isEnabled()){
+            eventsAPI = new EventsAPI();
+            out("EventsAPI detected, will issue Lock Event when locking!");
+        }
 	}
-	
+
 	public boolean onCommand(CommandSender sender, Command command, String commandLabel, String[] args) {
-		
+
 		if ( ! this.isEnabled() ) return false;
-		
+
 		boolean success = false;
 		boolean isPlayer = false;
 		Player player = null;
-		
+
 		if (sender instanceof Player){
 			isPlayer = true;
 			player = (Player)sender;
@@ -134,7 +148,7 @@ public class SCL extends JavaPlugin {
 							server.getScheduler().scheduleSyncRepeatingTask(this,chests, 100, 100);
 						}
 						sender.sendMessage(ChatColor.GREEN+"Successfully reloaded configuration and locks from "+saveFile);
-						
+
 					}
 					else {
 						sender.sendMessage(ChatColor.RED+"[SimpleChestLock] Sorry, permission denied!");
@@ -213,7 +227,7 @@ public class SCL extends JavaPlugin {
 								ownership.put(item.getOwner(),++owned);
 							}
 						}
-						
+
 						for (String playerName : ownership.keySet()){
 							Integer owned = ownership.get(playerName);
 							if (owned == null){
@@ -268,7 +282,7 @@ public class SCL extends JavaPlugin {
                     }
                     else {
                         sender.sendMessage("Sorry, Mr. Console, you can't carry keys.");
-                    }				    
+                    }
 				}
 			}
 		}
@@ -278,7 +292,7 @@ public class SCL extends JavaPlugin {
 		return success;
 	}
 	public static boolean permit(Player player,String[] permissions){
-		
+
 		if (player == null) return false;
 		if (permissions == null) return false;
 		String playerName = player.getName();
@@ -294,7 +308,7 @@ public class SCL extends JavaPlugin {
 			}
 		}
 		return permit;
-		
+
 	}
 	public static boolean permit(Player player,String permission){
 		return permit(player,new String[]{permission});
@@ -403,7 +417,7 @@ public class SCL extends JavaPlugin {
                 crap("Sorry, '"+sucks+"' can't be vertically lockable.  Is it lockable at all?");
             }
         }
-		
+
 		// The associated permissions
 		verbose("Preparing permissions:");
 

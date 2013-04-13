@@ -14,6 +14,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
+import me.sonarbeserk.events.CallableEvents.LockEvent;
+import me.sonarbeserk.events.enums.LockPlugins;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.DyeColor;
@@ -36,7 +38,7 @@ public class SCLList implements Runnable {
 	public final HashMap<Location,SCLItem> list = new HashMap<Location,SCLItem>();
 	int key = 0;
 	final HashSet<SCLItem> deferredItems = new HashSet<SCLItem>();
-	
+
 	public SCLList(SCL instance) {
 		plugin = instance;
 	}
@@ -70,12 +72,12 @@ public class SCLList implements Runnable {
 				SCL.crap("FAILED TO CREATE FILE FOR LOCKS ("+filename+"): "+e.getMessage());
 			}
 		}
-		
+
 		int lineNumber = 0;
 		try {
 			BufferedReader in = new BufferedReader(new FileReader(lockedItemFile));
 			String line = "";
-			
+
 			while (line != null){
 				line = in.readLine();
 				lineNumber++;
@@ -112,7 +114,7 @@ public class SCLList implements Runnable {
 				e.printStackTrace();
 			}
 		}
-		
+
 		try {
 			BufferedWriter out = new BufferedWriter(new FileWriter(lockedItemsFile));
 			for (SCLItem item : list.values()){
@@ -136,7 +138,7 @@ public class SCLList implements Runnable {
 		for (SCLItem item : list.values() ){
 			if (!item.isLocationDeferred()){
 				Block block = item.getLocation().getBlock();
-				
+
 				Chunk chunk = block.getChunk();
 				if (chunk.isLoaded() && plugin.canSuck.contains(block.getType())){
 					if (block.getState() instanceof InventoryHolder){
@@ -225,7 +227,7 @@ public class SCLList implements Runnable {
 	public boolean isComboLocked(Block block){
 		if (isLocked(block)){
 			SCL.verbose("> Locked");
-			 
+
 			SCLItem item = list.get(block.getLocation());
 			if (item != null){
 				if (item.isComboLocked()){
@@ -276,17 +278,20 @@ public class SCLList implements Runnable {
             if (plugin.locksAs.containsKey(lockAs)){
                 lockAs = plugin.locksAs.get(lockAs);
             }
-            
+
             HashSet<Block> lockBlocks = new HashSet<Block>();
+            List<Block> eventBlocks = new ArrayList<Block>();
+
             if (plugin.cfg.lockpair() && plugin.canDoubleLock(block)){
                 lockBlocks.addAll(this.getTypedNeighbours(block));
             }
             else {
                 lockBlocks.add(block);
             }
-            
+
             if (plugin.limitHandler.canLock(player, lockBlocks.size())){
                 for (Block lockMe : lockBlocks){
+                    eventBlocks.add(lockMe);
                     SCL.verbose("Locking " + blockName);
                     SCLItem newItem = new SCLItem(lockAs,lockMe);
                     if (combo != null){
@@ -296,6 +301,12 @@ public class SCLList implements Runnable {
                     newItem.setTrusted(plugin.trustHandler.getTrusteesCopy(lockAs));
                     list.put(lockMe.getLocation(),newItem);
                 }
+
+                if (plugin.enableEventsAPI){
+                    LockEvent event = new LockEvent(player,eventBlocks,LockPlugins.SimpleChestLock);
+                    plugin.eventsAPI.callLockEvent(event);
+                }
+
                 save("Chests.txt");
                 return lockBlocks.size();
             }
@@ -323,7 +334,7 @@ public class SCLList implements Runnable {
 		if (block == null) return 0;
 		if (this.isLocked(block)){
 			if (list != null){
-				
+
 				Integer unlockedItems = 0;
 				if (plugin.cfg.lockpair() && plugin.canDoubleLock(block)){
 					unlockedItems = this.removeNeighboring(block);
@@ -348,7 +359,7 @@ public class SCLList implements Runnable {
 		neighbours.add(block.getRelative(BlockFace.SOUTH));
 		neighbours.add(block.getRelative(BlockFace.EAST));
 		neighbours.add(block.getRelative(BlockFace.WEST));
-		
+
 		// For doors
 		if (plugin.lockIncludeVertical.contains(block.getType())){
 			SCL.verbose(block.getType().toString() + " is vertically locked.");
@@ -356,17 +367,17 @@ public class SCLList implements Runnable {
 			for (Block neighbour : neighbours){
 				Block above = neighbour.getRelative(BlockFace.UP);
 				additionalNeighbours.add(above);
-				
+
 				Block below = neighbour.getRelative(BlockFace.DOWN);
 				additionalNeighbours.add(below);
-				
+
 			}
 			neighbours.addAll(additionalNeighbours);
 		}
 		else {
 			SCL.verbose(block.getType().toString() + " is NOT vertically locked.");
 		}
-		
+
 		return neighbours;
 	}
 	public HashSet<Block> getTypedNeighbours (Block block) {
