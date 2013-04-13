@@ -7,6 +7,7 @@ lockedChestsSuck: false
 suckRange: 3
 suckInterval: 100
 suckEffect: true
+useWorldGuard: false
 preventExplosions: true
 useProtectiveAuras: false
 key: 280
