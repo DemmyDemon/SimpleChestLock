@@ -12,7 +12,7 @@ import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 
 public class SCLEntityListener implements Listener {
 	final SCL plugin;
-	
+
 	public SCLEntityListener(SCL instance) {
 		plugin = instance;
 	}
@@ -36,9 +36,10 @@ public class SCLEntityListener implements Listener {
         if (plugin.cfg.preventExplosions()){ // If not, what's the point in checking at all?
 		    for (Block block : event.blockList()){
 			    if (plugin.chests.isLocked(block)){
-                    event.setCancelled(true);
+                    //event.setCancelled(true); // No need to cancel the whole thing now that the list is no longer immutable.
+                    event.blockList().remove(block);
                     SCL.verbose(plugin.chests.getOwner(block)+"'s "+block.getType().toString()+ " was saved from explosion.  Boom: "+String.valueOf(event.getEntity()).replace("^Craft","")); // Thanks SonarBerserk
-                    break;
+                    //break; // Can't break any more:  Need to run through the whole list!
                 }
 			}
 		}
