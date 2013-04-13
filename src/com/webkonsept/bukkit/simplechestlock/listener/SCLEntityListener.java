@@ -10,6 +10,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 
+import java.util.ArrayList;
+
 public class SCLEntityListener implements Listener {
 	final SCL plugin;
 
@@ -34,14 +36,17 @@ public class SCLEntityListener implements Listener {
 	    if (!plugin.isEnabled()) return;
 	    if (event.isCancelled()) return;
         if (plugin.cfg.preventExplosions()){ // If not, what's the point in checking at all?
+            ArrayList<Block> lockedBlocks = new ArrayList<Block>();
 		    for (Block block : event.blockList()){
 			    if (plugin.chests.isLocked(block)){
                     //event.setCancelled(true); // No need to cancel the whole thing now that the list is no longer immutable.
-                    event.blockList().remove(block);
+                    // event.blockList().remove(block); // ConcurrentModificationException
+                    lockedBlocks.add(block);
                     SCL.verbose(plugin.chests.getOwner(block)+"'s "+block.getType().toString()+ " was saved from explosion.  Boom: "+String.valueOf(event.getEntity()).replace("^Craft","")); // Thanks SonarBerserk
                     //break; // Can't break any more:  Need to run through the whole list!
                 }
-			}
+            }
+            event.blockList().removeAll(lockedBlocks);
 		}
 	}
 
